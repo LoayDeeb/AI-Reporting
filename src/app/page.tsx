@@ -12,7 +12,7 @@ import {
   ThumbsUp, Activity, Search, Palette
 } from 'lucide-react';
 import { ModernDashboard } from '../components/Dashboard';
-import Navigation from '@/components/Navigation';
+import Navigation from '../components/Navigation';
 
 interface PlatformOverallScore {
   overallScore: number;

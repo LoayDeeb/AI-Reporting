@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { HumanAgentAIAnalysis } from '@/lib/human-agent-analysis';
+import { HumanAgentAIAnalysis } from '../../../lib/human-agent-analysis';
 
 export async function GET(request: NextRequest) {
   try {

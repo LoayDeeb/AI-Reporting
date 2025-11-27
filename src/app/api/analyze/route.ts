@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DataProcessor } from '@/lib/data-processor';
-import { ZainjoDataProcessor } from '@/lib/zainjo-data-processor';
-import { DashboardMetrics, Message } from '@/types/conversation';
-import { isOpenAIConfigured } from '@/lib/openai';
+import { DataProcessor } from '../../../lib/data-processor';
+import { ZainjoDataProcessor } from '../../../lib/zainjo-data-processor';
+import { DashboardMetrics, Message } from '../../../types/conversation';
+import { isOpenAIConfigured } from '../../../lib/openai';
 
 export async function GET(request: NextRequest) {
   try {
