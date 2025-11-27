@@ -1,0 +1,45 @@
+{
+  "name": "chatbot-analytics",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test:dataset": "node test-large-dataset.js",
+    "test:basic": "curl \"http://localhost:3001/api/analyze?action=basic\"",
+    "test:sample": "curl \"http://localhost:3001/api/analyze?action=full&fastMode=true&sampleSize=1000\"",
+    "test:standard": "curl \"http://localhost:3001/api/analyze?action=full&fastMode=true&optimization=standard\"",
+    "test:aggressive": "curl \"http://localhost:3001/api/analyze?action=full&fastMode=true&optimization=aggressive\"",
+    "test:extreme": "curl \"http://localhost:3001/api/analyze?action=full&fastMode=true&optimization=extreme\"",
+    "test:full": "curl \"http://localhost:3001/api/analyze?action=full&fastMode=true&optimization=standard\"",
+    "clear:cache": "curl \"http://localhost:3001/api/analyze?action=clear-cache\""
+  },
+  "dependencies": {
+    "@types/json5": "^0.0.30",
+    "axios": "^1.10.0",
+    "csv-parse": "^5.6.0",
+    "csv-parser": "^3.2.0",
+    "json5": "^2.2.3",
+    "lucide-react": "^0.511.0",
+    "next": "15.3.3",
+    "openai": "^5.0.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.3",
+    "stream-json": "^1.9.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/stream-json": "^1.7.8",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

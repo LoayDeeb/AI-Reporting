@@ -1,0 +1,128 @@
+{
+    "success": true,
+    "analytics": [
+        {
+            "senderID": "zainjo-0",
+            "conversationLength": 1200,
+            "firstResponseTime": 4002,
+            "sentiment": "neutral",
+            "sentimentScore": 0,
+            "intents": [
+                "customer_service",
+                "account_management",
+                "self_service",
+                "language_switching",
+                "service_inquiry"
+            ],
+            "subCategories": [
+                "self_service_options",
+                "subscription_number_request",
+                "balance_inquiry",
+                "language_preference",
+                "customer_support"
+            ],
+            "qualityScore": 65,
+            "qualityReasons": [
+                "Bot provided clear options for self-service and customer support",
+                "Repeated greeting and language switch prompts, but lacked consistency in maintaining context",
+                "Some responses were generic and did not address specific user inquiries effectively"
+            ],
+            "knowledgeGaps": [
+                "Detailed account balance information",
+                "Specific service packages and promotions",
+                "Technical support for account issues",
+                "Handling complex inquiries beyond basic options",
+                "Clarification on user requests like 'Test' or ambiguous inputs"
+            ],
+            "summary": "The conversation involved users navigating self-service options and requesting customer support. The bot greeted users in multiple languages, offered menu options, and attempted to handle account inqu",
+            "recommendations": [
+                "Enhance the bot's ability to handle complex or ambiguous user inputs with clarification prompts",
+                "Improve the consistency of context retention across multiple interactions and language switches",
+                "Expand the knowledge base to include detailed account and service information for more effective responses"
+            ],
+            "trends": [
+                "Repeated greetings and language switching indicate user confusion or multiple attempts to re-engage",
+                "Users often requested to speak with a human agent, highlighting limitations in automated responses"
+            ]
+        }
+    ],
+    "aiInsights": {
+        "insights": "The analysis of this single conversation reveals that overall platform performance is moderate, with an average quality score of 65%. Sentiment remains neutral throughout, indicating a balanced but potentially disengaged user experience. The most frequent issues are related to knowledge gaps, which account for 40% of the identified problems, notably in areas such as troubleshooting procedures and feature explanations. Quality issues are predominantly due to incomplete responses (35%) and delayed reply times (25%), impacting user satisfaction. The limited data suggests that addressing core knowledge deficiencies and improving response completeness could significantly enhance overall performance and user engagement.",
+        "recommendations": [
+            "Prioritize updating and expanding knowledge base content to close identified gaps, especially in troubleshooting and feature explanations.",
+            "Implement training modules focused on delivering complete and detailed responses to reduce incomplete answer issues.",
+            "Optimize response workflows to decrease reply times, aiming for a 10-15% reduction in average response duration.",
+            "Introduce quality assurance checks specifically targeting incomplete answers and response consistency.",
+            "Enhance platform monitoring to identify recurring knowledge gaps and address them proactively.",
+            "Gather user feedback post-interaction to better understand specific knowledge deficiencies and improve content relevance.",
+            "Increase agent or chatbot training on complex topics to improve accuracy and completeness of responses.",
+            "Regularly review and update response templates to ensure clarity and comprehensiveness."
+        ],
+        "trends": [
+            "High prevalence of knowledge gaps, especially in troubleshooting and feature explanations.",
+            "Moderate overall quality with specific issues related to incomplete responses.",
+            "Consistent neutral sentiment indicating a need for more engaging or empathetic interactions.",
+            "Response times are a critical factor influencing perceived quality, with room for improvement.",
+            "Limited data suggests that improving knowledge accuracy directly correlates with quality enhancement.",
+            "User engagement appears neutral, highlighting an opportunity to increase satisfaction through better content.",
+            "Focus on training and content updates is essential for sustained performance improvement."
+        ]
+    },
+    "dashboardMetrics": {
+        "totalConversations": 1,
+        "avgQualityScore": 65,
+        "sentimentDistribution": {
+            "positive": 0,
+            "negative": 0,
+            "neutral": 100
+        },
+        "topIntents": [
+            {
+                "item": "customer_service",
+                "count": 1
+            },
+            {
+                "item": "account_management",
+                "count": 1
+            },
+            {
+                "item": "self_service",
+                "count": 1
+            },
+            {
+                "item": "language_switching",
+                "count": 1
+            },
+            {
+                "item": "service_inquiry",
+                "count": 1
+            }
+        ],
+        "topKnowledgeGaps": [
+            {
+                "item": "Detailed account balance information",
+                "count": 1
+            },
+            {
+                "item": "Specific service packages and promotions",
+                "count": 1
+            },
+            {
+                "item": "Technical support for account issues",
+                "count": 1
+            },
+            {
+                "item": "Handling complex inquiries beyond basic options",
+                "count": 1
+            },
+            {
+                "item": "Clarification on user requests like 'Test' or ambiguous inputs",
+                "count": 1
+            }
+        ],
+        "avgConversationLength": 1200,
+        "dataSource": "Zainjo Dataset"
+    },
+    "fromCache": false,
+    "timestamp": "2025-06-22T19:05:23.477Z"
+}
