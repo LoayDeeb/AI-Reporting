@@ -1,0 +1,4 @@
+data/human-agent-conversations.json filter=lfs diff=lfs merge=lfs -text
+data/exact-trigger-conversations.json filter=lfs diff=lfs merge=lfs -text
+data/Web[[:space:]]AR*.txt filter=lfs diff=lfs merge=lfs -text
+data/APP[[:space:]]AR*.txt filter=lfs diff=lfs merge=lfs -text
