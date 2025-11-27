@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DataProcessor } from '@/lib/data-processor';
+import { DataProcessor } from '../../../lib/data-processor';
 
 export async function POST(request: NextRequest) {
   try {

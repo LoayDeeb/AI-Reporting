@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ZainjoDataProcessor } from '@/lib/zainjo-data-processor';
+import { ZainjoDataProcessor } from '../../../../lib/zainjo-data-processor';
 
 export async function GET(request: NextRequest) {
   try {

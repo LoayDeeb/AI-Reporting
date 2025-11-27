@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ZainjoDataProcessor } from '@/lib/zainjo-data-processor';
+import { ZainjoDataProcessor } from '../../../../lib/zainjo-data-processor';
 
 // Cache for transformed Zainjo conversations to avoid repeated processing
 let zainjoConversationsCache: any[] | null = null;

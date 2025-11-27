@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ChunkIndexer } from '@/lib/chunk-indexer';
-import { DataProcessor } from '@/lib/data-processor';
+import { ChunkIndexer } from '../../../lib/chunk-indexer';
+import { DataProcessor } from '../../../lib/data-processor';
 import fs from 'fs';
 import path from 'path';
 

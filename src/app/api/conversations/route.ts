@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DataProcessor } from '@/lib/data-processor';
+import { DataProcessor } from '../../../lib/data-processor';
 
 // Cache for transformed conversations to avoid repeated processing
 let conversationsCache: any[] | null = null;
