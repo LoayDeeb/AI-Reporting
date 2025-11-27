@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import ConversationHeader from '@/components/conversations/ConversationHeader';
-import MessageThread from '@/components/conversations/MessageThread';
-import AnalyticsPanel from '@/components/conversations/AnalyticsPanel';
-import Navigation from '@/components/Navigation';
+import ConversationHeader from '../../../../components/conversations/ConversationHeader';
+import MessageThread from '../../../../components/conversations/MessageThread';
+import AnalyticsPanel from '../../../../components/conversations/AnalyticsPanel';
+import Navigation from '../../../../components/Navigation';
 
 interface HumanAgentConversationDetailsProps {
   params: Promise<{

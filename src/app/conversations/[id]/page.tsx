@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ConversationHeader, MessageThread, AnalyticsPanel } from '@/components/conversations';
+import { ConversationHeader, MessageThread, AnalyticsPanel } from '../../../components/conversations';
 
 interface ConversationDetailsProps {
   params: Promise<{

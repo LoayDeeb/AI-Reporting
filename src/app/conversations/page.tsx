@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { SearchBar, Filters, ConversationList } from '@/components/conversations';
-import Navigation from '@/components/Navigation';
+import { SearchBar, Filters, ConversationList } from '../../components/conversations';
+import Navigation from '../../components/Navigation';
 import { MessageSquareIcon } from 'lucide-react';
 
 export interface ConversationData {
