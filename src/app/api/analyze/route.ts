@@ -26,7 +26,9 @@ export async function GET(request: NextRequest) {
         console.log('🔍 Loading conversation analysis from Supabase...');
         
         // Fetch AI analytics from Supabase
-        const { analytics, aiInsights } = await dbProcessor.getAnalytics('ai', 10000);
+        // Use sampleSize if provided, otherwise default to 10000
+        const limit = sampleSize || 10000;
+        const { analytics, aiInsights } = await dbProcessor.getAnalytics('ai', limit);
         
         if (analytics.length === 0) {
            // Fallback for demo mode or empty state

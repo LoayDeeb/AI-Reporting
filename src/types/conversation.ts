@@ -56,6 +56,23 @@ export interface ConversationAnalytics {
   summary: string;
   recommendations: string[];
   trends: string[];
+  
+  // Optional fields for Human Agent Analysis
+  agentName?: string;
+  customerName?: string;
+  coachingOpportunities?: string[];
+  scriptAdherence?: number;
+  escalationRisk?: number;
+  rootCauses?: string[];
+  churnSignals?: string[];
+  sentimentChange?: string;
+  empathyScore: number;
+  customerEffortScore?: number;
+  resolutionStatus?: string;
+  topics?: string[];
+  
+  // Timestamps
+  timestamp?: string;
 }
 
 // Enhanced types for detailed analysis

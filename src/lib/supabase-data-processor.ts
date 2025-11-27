@@ -44,6 +44,16 @@ export class SupabaseDataProcessor {
       trends: row.trends || [],
       customerEffortScore: row.customer_effort_score,
       
+      // Human Agent Specific
+      agentName: row.agent_name,
+      customerName: row.customer_name,
+      coachingOpportunities: row.coaching_opportunities || [],
+      scriptAdherence: row.script_adherence,
+      escalationRisk: row.escalation_risk,
+      rootCauses: row.root_causes || [],
+      churnSignals: row.churn_signals || [],
+      sentimentChange: row.sentiment_change,
+      
       // Timestamps
       timestamp: row.started_at
     }));

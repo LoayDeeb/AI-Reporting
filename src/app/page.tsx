@@ -194,9 +194,8 @@ export default function Dashboard() {
 
   // Handler for intelligent full analysis - optimized for large datasets
   const handleFullAnalysis = () => {
-    // Use ALL conversations to match cached analysis (325k conversations)
-    // This will load from cache instantly if available, or process all if cache is missing
-    loadData('full', true, 0, 'aggressive'); // 0 = ALL conversations, will use cache if available
+    // Use 5694 conversations as requested, loading directly from Supabase
+    loadData('full', true, 5694, 'aggressive'); 
   };
 
   // Handler for individual conversation analysis - navigate to conversations page

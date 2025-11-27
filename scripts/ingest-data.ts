@@ -118,7 +118,17 @@ async function ingestCacheFile(filePath: string, sourceType: 'ai' | 'human') {
         // Additional Insights
         recommendations: item.recommendations || [],
         trends: item.trends || [],
-        customer_effort_score: item.customerEffortScore || item.customer_effort_score || null
+        customer_effort_score: item.customerEffortScore || item.customer_effort_score || null,
+        
+        // Human Agent Specific
+        agent_name: item.agent_name || null,
+        customer_name: item.customer_name || null,
+        coaching_opportunities: item.coaching_opportunities || [],
+        script_adherence: item.script_adherence || null,
+        escalation_risk: item.escalation_risk || null,
+        root_causes: item.root_causes || [],
+        churn_signals: item.churn_signals || [],
+        sentiment_change: item.sentiment_change || null
       };
     });
 

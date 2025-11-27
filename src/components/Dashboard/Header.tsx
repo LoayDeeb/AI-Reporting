@@ -92,8 +92,8 @@ const Header = ({
               >
                 <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative flex items-center space-x-2">
-                  <Zap className="h-5 w-5" />
-                  <span>Intelligent Analysis</span>
+                  <BarChart3 className="h-5 w-5" />
+                  <span>Show Analysis</span>
                 </div>
                 <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-emerald-300 to-cyan-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
@@ -101,8 +101,8 @@ const Header = ({
               {/* Tooltip */}
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-50">
                 <div className="bg-gray-900/95 backdrop-blur-sm text-white text-sm rounded-lg p-3 shadow-xl border border-gray-700/50 whitespace-nowrap">
-                  <div className="font-medium text-emerald-400">🚀 Smart AI Analysis</div>
-                  <div className="text-gray-300 mt-1">Intelligent processing • High accuracy • Optimized selection</div>
+                  <div className="font-medium text-emerald-400">📊 View Data</div>
+                  <div className="text-gray-300 mt-1">Load analysis from database</div>
                   <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45 border-l border-t border-gray-700/50"></div>
                 </div>
               </div>

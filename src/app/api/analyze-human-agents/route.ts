@@ -18,19 +18,21 @@ export async function GET(request: NextRequest) {
     // Map to the exact structure expected by the frontend
     const transformedAnalytics = analytics.map(a => ({
       conversation_id: a.senderID, // Map senderID to conversation_id for human agents
-      agent_name: 'Agent', // Placeholder if not in DB (add agent_name to schema if needed)
-      customer_name: a.senderID,
+      agent_name: a.agentName || 'Agent',
+      customer_name: a.customerName || a.senderID,
       conversation_length: a.conversationLength,
       quality_score: a.qualityScore,
       empathy_score: a.empathyScore,
-      escalation_risk: 0, // Calculate if needed
-      script_adherence: 0, // Calculate if needed
+      escalation_risk: a.escalationRisk || 0,
+      script_adherence: a.scriptAdherence || 0,
       customer_effort_score: a.customerEffortScore || 0,
       final_sentiment: a.sentiment,
-      initial_sentiment: a.sentiment, // Placeholder
-      sentiment_change: 'maintained', // Placeholder
+      initial_sentiment: a.sentiment, // Simplified: Use final as placeholder if initial unknown
+      sentiment_change: a.sentimentChange || 'maintained',
       knowledge_gaps: a.knowledgeGaps,
-      coaching_opportunities: [],
+      coaching_opportunities: a.coachingOpportunities || [],
+      root_causes: a.rootCauses || [],
+      churn_signals: a.churnSignals || [],
       timestamp: a.timestamp
     }));
 
