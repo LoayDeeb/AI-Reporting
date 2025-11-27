@@ -36,15 +36,19 @@ yarn-error.log*
 # vercel
 .vercel
 
-# Large data files (too big for GitHub - 100MB limit)
-/data/*.txt
-/data/*.json
-/data/APP AR*.txt
-/data/Web AR*.txt
+# Large data files - Handled by Git LFS
+# /data/*.txt
+# /data/*.json
 /data/zainjo-chunks/
 
 # Cache files (regenerated on demand)
 /data/*-cache.json
+# Exceptions for large data files we want to track with LFS
+!/data/human-agent-conversations.json
+!/data/exact-trigger-conversations.json
+!/data/APP AR*.txt
+!/data/Web AR*.txt
+
 
 # Keep only small config/index files
 !/data/chunk-index.json

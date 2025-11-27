@@ -14,9 +14,13 @@ export async function GET(request: NextRequest) {
     console.log(`🚀 Human Agent API: ${action} analysis requested`);
     console.log(`⚙️ Settings: forceRefresh=${forceRefresh}, maxConversations=${maxConversations === 0 ? 'ALL' : maxConversations}, source=${source}`);
 
-    const cacheFilePath = path.join(process.cwd(), 'data', 'human-agent-analysis-cache.json');
-    const jsonFilePath = path.join(process.cwd(), 'data', 'human-agent-conversations.json');
-    const csvFilePath = path.join(process.cwd(), 'data', 'messages.csv');
+    // Use DATA_PATH env var if set, otherwise use default data dir
+    const dataDir = process.env.DATA_PATH || path.join(process.cwd(), 'data');
+    console.log(`📂 Using data directory: ${dataDir}`);
+
+    const cacheFilePath = path.join(dataDir, 'human-agent-analysis-cache.json');
+    const jsonFilePath = path.join(dataDir, 'human-agent-conversations.json');
+    const csvFilePath = path.join(dataDir, 'messages.csv');
 
     // Determine data source (prefer JSON from Web AR/APP AR extraction)
     const hasJson = fs.existsSync(jsonFilePath);

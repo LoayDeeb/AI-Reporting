@@ -18,7 +18,8 @@ export class DataProcessor {
   private cacheFilePath: string;
 
   constructor() {
-    this.cacheFilePath = path.join(process.cwd(), 'data', 'analysis-cache.json');
+    const dataPath = process.env.DATA_PATH || path.join(process.cwd(), 'data');
+    this.cacheFilePath = path.join(dataPath, 'analysis-cache.json');
   }
 
   /**
@@ -26,6 +27,16 @@ export class DataProcessor {
    */
   async loadCache(): Promise<CachedAnalysis | null> {
     try {
+      // Check if directory exists first, create if needed (for cache saving)
+      const dir = path.dirname(this.cacheFilePath);
+      if (!fs.existsSync(dir)) {
+        try {
+          fs.mkdirSync(dir, { recursive: true });
+        } catch (e) {
+          console.warn(`Warning: Could not create cache directory ${dir}:`, e);
+        }
+      }
+
       if (fs.existsSync(this.cacheFilePath)) {
         const stats = fs.statSync(this.cacheFilePath);
         const fileSizeMB = stats.size / (1024 * 1024);
@@ -119,8 +130,10 @@ export class DataProcessor {
    */
   async loadConversations(): Promise<Conversation[]> {
     try {
-      const projectRoot = process.cwd();
-      const dataDir = path.join(projectRoot, 'data');
+      // Use DATA_PATH env var if set (e.g. for Render persistent disk), otherwise use default data dir
+      const dataDir = process.env.DATA_PATH || path.join(process.cwd(), 'data');
+      
+      console.log(`📂 Loading conversations from: ${dataDir}`);
       
       // PRIORITY 1: Check for "Web AR*.txt" file in data directory (new format)
       if (fs.existsSync(dataDir)) {
