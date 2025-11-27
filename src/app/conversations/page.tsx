@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import SearchBar from '@/components/Conversations/SearchBar';
-import Filters from '@/components/Conversations/Filters';
-import ConversationList from '@/components/Conversations/ConversationList';
+import { SearchBar, Filters, ConversationList } from '@/components/Conversations';
 import Navigation from '@/components/Navigation';
 import { MessageSquareIcon } from 'lucide-react';
 
