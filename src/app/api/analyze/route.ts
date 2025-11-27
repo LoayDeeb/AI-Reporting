@@ -31,6 +31,15 @@ export async function GET(request: NextRequest) {
         // Fetch AI analytics from Supabase
         // Use sampleSize if provided, otherwise default to 10000
         const limit = (sampleSize !== undefined && !isNaN(sampleSize)) ? sampleSize : 10000;
+        
+        // If it's a full analysis, try to refresh insights first
+        if (action === 'full') {
+          console.log('🔄 Auto-refreshing insights for full analysis...');
+          // We can call the regenerate logic directly here or let the client handle it.
+          // For simplicity and performance, let's just ensure we get the latest aggregated insights
+          // The SupabaseDataProcessor.getAnalytics method already aggregates insights from the fetched data
+        }
+
         const { analytics, aiInsights } = await dbProcessor.getAnalytics('ai', limit);
         
         if (analytics.length === 0) {

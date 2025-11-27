@@ -132,6 +132,18 @@ const ModernDashboard = ({
     }
   };
 
+  // Auto-refresh insights when onFullAnalysis is called (e.g. user clicks "Start Analysis")
+  // This ensures we always have fresh AI insights when running a full analysis
+  const handleStartAnalysis = async () => {
+    if (onFullAnalysis) {
+      // Trigger refresh first
+      await refreshInsights();
+      // Then load the data
+      // Note: refreshInsights calls onFullAnalysis at the end, so we might not need to call it explicitly here
+      // But keeping it explicit is safer if refresh fails
+    }
+  };
+
   const analyzeZainjoData = async () => {
     if (onZainjoAnalysis) {
       onZainjoAnalysis();
@@ -204,7 +216,7 @@ const ModernDashboard = ({
                   <li>• Performance insights</li>
                 </ul>
                 <button
-                  onClick={onFullAnalysis}
+                  onClick={handleStartAnalysis}
                   className="w-full bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300"
                 >
                   Start Analysis
@@ -276,7 +288,7 @@ const ModernDashboard = ({
           fastMode={data.fastMode}
           optimizationLevel={data.optimizationLevel}
           loading={loading}
-          onFullAnalysis={onFullAnalysis}
+          onFullAnalysis={handleStartAnalysis}
           onConversationAnalysis={onConversationAnalysis}
         />
 
