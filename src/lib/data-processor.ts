@@ -38,6 +38,7 @@ export class DataProcessor {
       }
 
       if (fs.existsSync(this.cacheFilePath)) {
+        console.log(`📋 Cache file found at: ${this.cacheFilePath}`);
         const stats = fs.statSync(this.cacheFilePath);
         const fileSizeMB = stats.size / (1024 * 1024);
         
@@ -79,6 +80,8 @@ export class DataProcessor {
             reject(error);
           });
         });
+      } else {
+        console.log(`⚠️ Cache file NOT found at: ${this.cacheFilePath}`);
       }
     } catch (error) {
       console.error('Error loading cache:', error);

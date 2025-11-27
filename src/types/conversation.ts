@@ -88,7 +88,7 @@ export interface MessageAnalysis {
   qualityReasoning?: string;
 }
 
-export interface DetailedConversationAnalysis extends ConversationAnalytics {
+export interface DetailedConversationAnalysis extends Omit<ConversationAnalytics, 'escalationRisk' | 'resolutionStatus'> {
   messageAnalyses: MessageAnalysis[];
   conversationFlow: string[];
   escalationRisk: 'low' | 'medium' | 'high';

@@ -13,6 +13,9 @@ export async function GET(request: NextRequest) {
     const dbProcessor = new SupabaseDataProcessor();
     const processor = new DataProcessor(); // Keep for metrics calculation helpers if needed
 
+    const sampleSizeParam = searchParams.get('sampleSize');
+    const sampleSize = sampleSizeParam ? parseInt(sampleSizeParam) : undefined;
+
     switch (action) {
       case 'sample':
         // Get a sample conversation for testing (no AI needed)
@@ -27,7 +30,7 @@ export async function GET(request: NextRequest) {
         
         // Fetch AI analytics from Supabase
         // Use sampleSize if provided, otherwise default to 10000
-        const limit = sampleSize || 10000;
+        const limit = (sampleSize !== undefined && !isNaN(sampleSize)) ? sampleSize : 10000;
         const { analytics, aiInsights } = await dbProcessor.getAnalytics('ai', limit);
         
         if (analytics.length === 0) {

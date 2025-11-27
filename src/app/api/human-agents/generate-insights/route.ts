@@ -10,16 +10,16 @@ export async function POST(request: NextRequest) {
 
     console.log('🧠 Generating aggregated Human Agent insights from 1000 conversations...');
 
-    // 1. Fetch Data from Supabase
+    // 1. Fetch Data from Supabase (fetching up to 5000 to cover all recent data)
     const processor = new SupabaseDataProcessor();
-    const { analytics } = await processor.getAnalytics('human', 1000);
+    const { analytics } = await processor.getAnalytics('human', 5000);
 
     if (analytics.length === 0) {
       return NextResponse.json({ error: 'No human agent data found to analyze' }, { status: 404 });
     }
 
     // 2. Aggregate Data for Prompt
-    // We can't send 1000 full conversations, so we extract key signals
+    // We extract key signals from all fetched conversations
     const allRootCauses = analytics.flatMap(a => a.rootCauses || []);
     const allCoachingOps = analytics.flatMap(a => a.coachingOpportunities || []);
     const lowQualityConvs = analytics.filter(a => a.qualityScore < 50).length;
@@ -29,12 +29,13 @@ export async function POST(request: NextRequest) {
       return acc;
     }, { positive: 0, negative: 0 });
 
-    // Sample detailed issues (top 50 most frequent strings could be better, but random sample works for general vibe)
-    const sampleRootCauses = allRootCauses.slice(0, 100).join('; ');
-    const sampleCoaching = allCoachingOps.slice(0, 100).join('; ');
+    // Sample detailed issues (random shuffle to get diverse sample)
+    const shuffle = (array: string[]) => array.sort(() => 0.5 - Math.random());
+    const sampleRootCauses = shuffle([...allRootCauses]).slice(0, 200).join('; ');
+    const sampleCoaching = shuffle([...allCoachingOps]).slice(0, 200).join('; ');
 
     const prompt = `
-      Analyze the performance of Human Agents based on 1000 conversation records.
+      Analyze the performance of Human Agents based on ${analytics.length} conversation records.
       
       Statistics:
       - Total Conversations: ${analytics.length}

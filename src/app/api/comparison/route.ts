@@ -1,31 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DataProcessor } from '../../../lib/data-processor';
-import fs from 'fs';
-import path from 'path';
+import { SupabaseDataProcessor } from '../../../lib/supabase-data-processor';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('⚖️ Generating Human vs AI Comparison Data...');
+    console.log('⚖️ Generating Human vs AI Comparison Data (Supabase)...');
 
-    // 1. Load AI Data (Web AR / Zainjo)
-    const dataProcessor = new DataProcessor();
-    const aiCache = await dataProcessor.loadCache();
+    const processor = new SupabaseDataProcessor();
+
+    // 1. Fetch AI Data
+    const aiData = await processor.getAnalytics('ai', 5000);
     
-    // 2. Load Human Agent Data
-    const humanCachePath = path.join(process.cwd(), 'data', 'human-agent-analysis-cache.json');
-    let humanData = { analytics: [] };
-    if (fs.existsSync(humanCachePath)) {
-      humanData = JSON.parse(fs.readFileSync(humanCachePath, 'utf-8'));
-    }
+    // 2. Fetch Human Agent Data
+    const humanData = await processor.getAnalytics('human', 5000);
 
-    if (!aiCache?.analytics || !humanData?.analytics) {
+    if (aiData.analytics.length === 0 && humanData.analytics.length === 0) {
       return NextResponse.json({
-        error: 'Missing analysis data. Please run both AI and Human Agent analysis first.'
+        error: 'Missing analysis data. Please ingest data into Supabase first.'
       }, { status: 404 });
     }
 
     // 3. Calculate Metrics
-    const aiMetrics = calculateMetrics(aiCache.analytics, 'AI (Web AR)');
+    const aiMetrics = calculateMetrics(aiData.analytics, 'AI (Web AR)');
     const humanMetrics = calculateMetrics(humanData.analytics, 'Human Agents');
 
     // 4. Comparison Logic
@@ -33,7 +28,7 @@ export async function GET(request: NextRequest) {
       ai: aiMetrics,
       human: humanMetrics,
       insights: generateComparisonInsights(aiMetrics, humanMetrics),
-      topicBreakdown: compareTopics(aiCache.analytics, humanData.analytics)
+      topicBreakdown: compareTopics(aiData.analytics, humanData.analytics)
     };
 
     return NextResponse.json(comparison);
