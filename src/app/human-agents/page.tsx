@@ -25,7 +25,8 @@ import {
   TrendingDown,
   User,
   CheckCircle,
-  X
+  X,
+  Sparkles
 } from 'lucide-react';
 
 interface HumanAgentConversation {
@@ -192,6 +193,27 @@ const HumanAgentDashboard: React.FC = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<any | null>(null);
   const [showAgentModal, setShowAgentModal] = useState(false);
+
+  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
+
+  const generateInsights = async () => {
+    try {
+      setIsGeneratingInsights(true);
+      const response = await fetch('/api/human-agents/generate-insights', { method: 'POST' });
+      const result = await response.json();
+      
+      if (result.success && result.insights) {
+        setData(prev => prev ? {
+          ...prev,
+          aiInsights: result.insights
+        } : null);
+      }
+    } catch (error) {
+      console.error('Error generating insights:', error);
+    } finally {
+      setIsGeneratingInsights(false);
+    }
+  };
 
   useEffect(() => {
     loadHumanAgentData();
@@ -589,6 +611,25 @@ const HumanAgentDashboard: React.FC = () => {
                     <div className="relative flex items-center space-x-2">
                       <MessageSquare className="h-5 w-5" />
                       <span>View Conversations</span>
+                    </div>
+                  </button>
+                </div>
+
+                {/* Generate Insights Button */}
+                <div className="group relative">
+                  <button
+                    onClick={generateInsights}
+                    disabled={isGeneratingInsights || loading}
+                    className="relative overflow-hidden bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                  >
+                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative flex items-center space-x-2">
+                      {isGeneratingInsights ? (
+                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                      ) : (
+                        <Sparkles className="h-5 w-5" />
+                      )}
+                      <span>Generate Insights</span>
                     </div>
                   </button>
                 </div>
