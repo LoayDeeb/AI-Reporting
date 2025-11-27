@@ -280,7 +280,7 @@ const ModernDashboard = ({
         />
 
         {/* Primary Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <MetricCard
             icon={<Users2 className="h-6 w-6" />}
             title="Total Conversations"
@@ -294,13 +294,6 @@ const ModernDashboard = ({
             value={`${avgLength.toFixed(1)} msgs`}
             color="emerald"
             subtitle="Messages per conversation"
-          />
-          <MetricCard
-            icon={<Clock className="h-6 w-6" />}
-            title="Avg Response Time"
-            value={formatResponseTime(avgResponseTime)}
-            color="amber"
-            subtitle="First response time"
           />
           <MetricCard
             icon={<Target className="h-6 w-6" />}

@@ -139,7 +139,7 @@ const SentimentChart = ({ data }: SentimentChartProps) => {
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="text-center">
             <p className="text-2xl font-bold text-white">
-              {chartData.reduce((sum, item) => sum + item.value, 0)}%
+              {Math.round(chartData.reduce((sum, item) => sum + item.value, 0))}%
             </p>
             <p className="text-xs text-gray-400 uppercase tracking-wide">Total</p>
           </div>

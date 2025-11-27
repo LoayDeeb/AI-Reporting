@@ -665,7 +665,7 @@ const HumanAgentDashboard: React.FC = () => {
         </div>
 
         {/* Key Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
           <MetricCard
             icon={<Star className="h-6 w-6" />}
             title="Quality Score"
@@ -693,13 +693,6 @@ const HumanAgentDashboard: React.FC = () => {
             value={`${averages.avgScriptAdherence}%`}
             color="blue"
             subtitle="Following protocols"
-          />
-          <MetricCard
-            icon={<Activity className="h-6 w-6" />}
-            title="Customer Effort"
-            value={`${averages.avgCustomerEffort}/10`}
-            color="violet"
-            subtitle="Customer experience score"
           />
           <MetricCard
             icon={<Users className="h-6 w-6" />}
@@ -965,7 +958,7 @@ const HumanAgentDashboard: React.FC = () => {
 
             <div className="p-6">
               {/* Agent Metrics Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <div className="bg-gray-700/30 rounded-xl p-4 text-center">
                   <Star className="h-6 w-6 text-emerald-400 mx-auto mb-2" />
                   <p className="text-2xl font-bold text-emerald-400">{selectedAgent.metrics.avgQuality}</p>
@@ -985,11 +978,6 @@ const HumanAgentDashboard: React.FC = () => {
                   <CheckCircle className="h-6 w-6 text-blue-400 mx-auto mb-2" />
                   <p className="text-2xl font-bold text-blue-400">{selectedAgent.metrics.avgScriptAdherence}%</p>
                   <p className="text-gray-400 text-sm">Script Adherence</p>
-                </div>
-                <div className="bg-gray-700/30 rounded-xl p-4 text-center">
-                  <Activity className="h-6 w-6 text-violet-400 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-violet-400">{selectedAgent.metrics.avgCustomerEffort}</p>
-                  <p className="text-gray-400 text-sm">Customer Effort</p>
                 </div>
               </div>
 
