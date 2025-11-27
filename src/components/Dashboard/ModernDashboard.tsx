@@ -6,6 +6,7 @@ import MetricCard from './MetricCard';
 import SentimentChart from './Charts/SentimentChart';
 import TopicsChart from './Charts/TopicsChart';
 import InsightsSection from './Insights/InsightsSection';
+import KnowledgeBaseGenerator from './Insights/KnowledgeBaseGenerator';
 import ParallelProcessingPanel from '../ParallelProcessing/ParallelProcessingPanel';
 import {
   Users2,
@@ -337,6 +338,9 @@ const ModernDashboard = ({
 
         {/* AI Insights */}
         <InsightsSection aiInsights={data.aiInsights} />
+        
+        {/* Knowledge Base Generator */}
+        <KnowledgeBaseGenerator />
 
         {/* Performance Stats */}
         {data.fastMode && (

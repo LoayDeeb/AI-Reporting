@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3Icon, MessageSquareIcon, UsersIcon, ChevronDownIcon } from 'lucide-react';
+import { BarChart3Icon, MessageSquareIcon, UsersIcon, ChevronDownIcon, Scale } from 'lucide-react';
 
 const Navigation = () => {
   const pathname = usePathname();
@@ -17,6 +17,11 @@ const Navigation = () => {
       href: '/conversations',
       label: 'Conversations',
       icon: <MessageSquareIcon size={20} />,
+    },
+    {
+      href: '/comparison',
+      label: 'Human vs AI',
+      icon: <Scale size={20} />,
     },
   ];
 
