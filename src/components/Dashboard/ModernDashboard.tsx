@@ -111,7 +111,7 @@ const ModernDashboard = ({
 
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const refreshInsights = async () => {
+  const refreshInsights = async (autoReload = true) => {
     try {
       setIsProcessing(true);
       const response = await fetch('/api/regenerate-insights', {
@@ -119,14 +119,14 @@ const ModernDashboard = ({
       });
       const result = await response.json();
       
-      if (result.success) {
+      if (result.success && autoReload && onFullAnalysis) {
         // Refresh the dashboard data to show updated insights
-        if (onFullAnalysis) {
-          onFullAnalysis();
-        }
+        onFullAnalysis();
       }
+      return result.success;
     } catch (error) {
       console.error('Error refreshing insights:', error);
+      return false;
     } finally {
       setIsProcessing(false);
     }
@@ -136,11 +136,10 @@ const ModernDashboard = ({
   // This ensures we always have fresh AI insights when running a full analysis
   const handleStartAnalysis = async () => {
     if (onFullAnalysis) {
-      // Trigger refresh first
-      await refreshInsights();
-      // Then load the data
-      // Note: refreshInsights calls onFullAnalysis at the end, so we might not need to call it explicitly here
-      // But keeping it explicit is safer if refresh fails
+      // Trigger refresh first (no auto-reload inside, we handle it here)
+      await refreshInsights(false);
+      // ALWAYS load data, even if refresh failed
+      onFullAnalysis();
     }
   };
 
@@ -187,8 +186,8 @@ const ModernDashboard = ({
             analysisType="basic"
             fastMode={false}
             optimizationLevel="standard"
-            loading={loading}
-            onFullAnalysis={onFullAnalysis}
+            loading={loading || isProcessing}
+            onFullAnalysis={handleStartAnalysis}
             onConversationAnalysis={onConversationAnalysis}
           />
 
@@ -287,7 +286,7 @@ const ModernDashboard = ({
           analysisType={data.analysisType}
           fastMode={data.fastMode}
           optimizationLevel={data.optimizationLevel}
-          loading={loading}
+          loading={loading || isProcessing}
           onFullAnalysis={handleStartAnalysis}
           onConversationAnalysis={onConversationAnalysis}
         />
