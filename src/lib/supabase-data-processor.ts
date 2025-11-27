@@ -67,13 +67,23 @@ export class SupabaseDataProcessor {
 
   private aggregateInsights(analytics: any[]) {
     // Simple aggregation for now
-    const allTrends = analytics.flatMap(a => a.trends || []).slice(0, 5);
-    const allRecs = analytics.flatMap(a => a.recommendations || []).slice(0, 5);
+    
+    // Try standard fields first
+    let allTrends = analytics.flatMap(a => a.trends || []);
+    let allRecs = analytics.flatMap(a => a.recommendations || []);
+    
+    // If empty, try human agent specific fields
+    if (allTrends.length === 0) {
+      allTrends = analytics.flatMap(a => a.rootCauses || []);
+    }
+    if (allRecs.length === 0) {
+      allRecs = analytics.flatMap(a => a.coachingOpportunities || []);
+    }
     
     return {
       insights: `Analyzed ${analytics.length} conversations from database.`,
-      recommendations: [...new Set(allRecs)],
-      trends: [...new Set(allTrends)]
+      recommendations: [...new Set(allRecs)].slice(0, 5),
+      trends: [...new Set(allTrends)].slice(0, 5)
     };
   }
 
