@@ -96,7 +96,22 @@ export class SupabaseDataProcessor {
   }
 
   private aggregateInsights(analytics: any[]) {
-    // Simple aggregation for now
+    // Improved aggregation with frequency counting to show most common insights
+    
+    const countOccurrences = (items: string[]) => {
+      const counts: Record<string, number> = {};
+      items.forEach(item => {
+        if (!item) return;
+        // Normalize string to avoid duplicates due to case/spacing
+        const normalized = item.trim();
+        if (normalized.length > 0) {
+          counts[normalized] = (counts[normalized] || 0) + 1;
+        }
+      });
+      return Object.entries(counts)
+        .sort(([,a], [,b]) => b - a)
+        .map(([item]) => item);
+    };
     
     // Try standard fields first
     let allTrends = analytics.flatMap(a => a.trends || []);
@@ -110,10 +125,13 @@ export class SupabaseDataProcessor {
       allRecs = analytics.flatMap(a => a.coachingOpportunities || []);
     }
     
+    const topTrends = countOccurrences(allTrends).slice(0, 8);
+    const topRecs = countOccurrences(allRecs).slice(0, 8);
+    
     return {
       insights: `Analyzed ${analytics.length} conversations from database.`,
-      recommendations: [...new Set(allRecs)].slice(0, 5),
-      trends: [...new Set(allTrends)].slice(0, 5)
+      recommendations: topRecs.length > 0 ? topRecs : ['No specific recommendations found.'],
+      trends: topTrends.length > 0 ? topTrends : ['No specific trends identified.']
     };
   }
 

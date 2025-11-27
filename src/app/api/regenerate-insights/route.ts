@@ -1,33 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DataProcessor } from '../../../lib/data-processor';
+import { SupabaseDataProcessor } from '../../../lib/supabase-data-processor';
+import { AIAnalysisService } from '../../../lib/ai-analysis';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔄 API: Regenerating insights from cached data...');
+    console.log('🔄 API: Regenerating insights from Supabase data...');
     
-    const processor = new DataProcessor();
+    // 1. Fetch Data from Supabase (up to 5000 records for comprehensive analysis)
+    const processor = new SupabaseDataProcessor();
+    const { analytics } = await processor.getAnalytics('ai', 5000);
     
-    // Check if cache exists
-    const cache = await processor.loadCache();
-    if (!cache || !cache.analytics || cache.analytics.length === 0) {
+    if (!analytics || analytics.length === 0) {
       return NextResponse.json({
         success: false,
-        error: 'No cached analysis data found. Please run full analysis first.'
+        error: 'No conversation data found in database.'
       }, { status: 400 });
     }
 
-    console.log(`📊 Found cached analysis with ${cache.analytics.length} conversations`);
+    console.log(`📊 Found ${analytics.length} conversations in database`);
 
-    // Regenerate AI insights from cached data
-    const aiInsights = await processor.regenerateAIInsights();
+    // 2. Consolidate insights using AI Analysis Service
+    // This aggregates individual conversation signals into platform-level insights
+    const aiService = new AIAnalysisService();
+    const aiInsights = await aiService.consolidateConversationInsights(analytics);
     
     console.log('✅ Insights regenerated successfully');
 
     return NextResponse.json({
       success: true,
-      message: `Successfully regenerated insights from ${cache.analytics.length} cached conversations`,
+      message: `Successfully regenerated insights from ${analytics.length} conversations`,
       aiInsights,
-      cachedConversations: cache.analytics.length,
+      cachedConversations: analytics.length,
       timestamp: new Date().toISOString()
     });
 
@@ -43,32 +46,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const processor = new DataProcessor();
-    const cache = await processor.loadCache();
-    
-    if (!cache || !cache.analytics || cache.analytics.length === 0) {
-      return NextResponse.json({
-        hasCachedData: false,
-        message: 'No cached analysis data found'
-      });
-    }
-
-    return NextResponse.json({
-      hasCachedData: true,
-      cachedConversations: cache.analytics.length,
-      cacheTimestamp: cache.timestamp,
-      hasInsights: !!(cache.aiInsights && cache.aiInsights.insights),
-      currentInsightsLength: cache.aiInsights?.insights?.length || 0,
-      currentRecommendations: cache.aiInsights?.recommendations?.length || 0,
-      currentTrends: cache.aiInsights?.trends?.length || 0
-    });
-
-  } catch (error) {
-    console.error('❌ Error checking cache:', error);
-    return NextResponse.json({
-      hasCachedData: false,
-      error: error instanceof Error ? error.message : 'Failed to check cache'
-    }, { status: 500 });
-  }
+  // Basic check endpoint
+  return NextResponse.json({
+    status: 'ready',
+    service: 'Supabase Insight Generator'
+  });
 } 
