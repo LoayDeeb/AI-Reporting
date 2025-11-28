@@ -12,11 +12,19 @@ export async function POST(request: NextRequest) {
 
     // 1. Fetch Data from Supabase (fetching up to 5000 to cover all recent data)
     const processor = new SupabaseDataProcessor();
-    const { analytics } = await processor.getAnalytics('human', 5000);
+    const { analytics: fullAnalytics } = await processor.getAnalytics('human', 5000);
 
-    if (analytics.length === 0) {
+    if (fullAnalytics.length === 0) {
       return NextResponse.json({ error: 'No human agent data found to analyze' }, { status: 404 });
     }
+
+    // 1.5 Sample 25% of the data
+    const sampleSize = Math.max(1, Math.ceil(fullAnalytics.length * 0.25));
+    const analytics = fullAnalytics
+      .sort(() => 0.5 - Math.random())
+      .slice(0, sampleSize);
+
+    console.log(`📉 Sampling: Selected ${analytics.length} conversations from ${fullAnalytics.length} total (25%)`);
 
     // 2. Aggregate Data for Prompt
     // We extract key signals from all fetched conversations
@@ -31,8 +39,9 @@ export async function POST(request: NextRequest) {
 
     // Sample detailed issues (random shuffle to get diverse sample)
     const shuffle = (array: string[]) => array.sort(() => 0.5 - Math.random());
-    const sampleRootCauses = shuffle([...allRootCauses]).slice(0, 200).join('; ');
-    const sampleCoaching = shuffle([...allCoachingOps]).slice(0, 200).join('; ');
+    // Reduced sample size to 50 (25% of previous 200) to avoid context length issues
+    const sampleRootCauses = shuffle([...allRootCauses]).slice(0, 50).join('; ');
+    const sampleCoaching = shuffle([...allCoachingOps]).slice(0, 50).join('; ');
 
     const prompt = `
       Analyze the performance of Human Agents based on ${analytics.length} conversation records.

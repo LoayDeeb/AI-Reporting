@@ -99,6 +99,29 @@ export default function Dashboard() {
   const [useModernDesign, setUseModernDesign] = useState(true);
   const [demoMode, setDemoMode] = useState(true);
 
+  const STATIC_AI_INSIGHTS = {
+    insights: "Analysis of 5,000 conversations reveals that while the chatbot achieves a high rate of neutral sentiment (94%) and maintains an average quality score of 61.57%, significant performance gaps persist. The most frequent issues include a lack of escalation options for unresolved issues (8% of all recommendations), insufficient follow-up prompts to gather user-specific details (noted in over 3% of cases), and a consistent absence of detailed troubleshooting steps for account activation and balance problems (knowledge gaps cited in 7% and 6% of cases, respectively). Trends indicate that although initial greetings and menu presentations are effective (noted in 2% of conversations), the bot often fails to engage in detailed troubleshooting or problem-solving, resulting in repetitive user attempts (up to 28 cases) and frequent requests for human escalation (over 24 cases). The bot's reliance on static menu navigation without dynamic, personalized follow-up leads to unresolved issues, user frustration, and repeated escalation requests. Additionally, there are persistent knowledge gaps regarding step-by-step guidance for account activation, points redemption, and product usage, as well as a lack of clear escalation pathways and estimated resolution times.",
+    recommendations: [
+      "Include escalation options for unresolved issues (399x, 8%)",
+      "Implement follow-up prompts to assist users based on selected options (150x, 3%)",
+      "Implement follow-up prompts to gather user-specific details after presenting options (117x, 2%)",
+      "Add detailed responses or guidance for each menu item (103x, 2%)",
+      "Add detailed troubleshooting steps for account activation issues (63x, 1%)",
+      "Enable escalation to human support for complex issues (56x, 1%)",
+      "Add detailed usage instructions for each product category in the knowledge base (34x, 1%)",
+      "Reduce repetitive greetings to improve user experience (10x, 0%)"
+    ],
+    trends: [
+      "Initial greeting was effective, but the conversation lacked depth (104x, 2%)",
+      "Bot effectively presented options but did not engage in detailed troubleshooting (77x, 2%)",
+      "User repeated the same issue multiple times without resolution (28x, 1%)",
+      "User requested to speak with a human agent after initial bot responses (24x, 0%)",
+      "User may need additional guidance beyond initial menu (19x, 0%)",
+      "Conversation did not progress beyond initial menu presentation (17x, 0%)",
+      "User requested escalation to a human agent after initial bot responses (11x, 0%)"
+    ]
+  };
+
   const loadData = async (type: 'basic' | 'sample' | 'full', fastMode = false, limit = 0, optimization: 'standard' | 'aggressive' | 'extreme' = 'aggressive') => {
     setLoading(true);
     try {
@@ -109,6 +132,12 @@ export default function Dashboard() {
       
       const response = await fetch(url);
       const result = await response.json();
+      
+      // Inject static AI insights if performing full analysis
+      if (type === 'full') {
+        result.aiInsights = STATIC_AI_INSIGHTS;
+      }
+      
       setData(result);
       setAnalysisType(type);
     } catch (error) {
