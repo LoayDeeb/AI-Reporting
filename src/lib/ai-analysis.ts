@@ -508,7 +508,7 @@ export class AIAnalysisService {
 
       const response = await this.retryApiCall(() =>
         this.openai.chat.completions.create({
-          model: "gpt-4.1-nano",
+          model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -615,7 +615,7 @@ Focus on the specific topics, categories, quality issues, and knowledge gaps fou
 
       const response = await this.retryApiCall(() =>
         this.openai.chat.completions.create({
-          model: "gpt-4.5-preview",
+          model: "gpt-4o",
           messages: [
             {
               role: "system",
@@ -676,7 +676,7 @@ Focus on the specific topics, categories, quality issues, and knowledge gaps fou
     try {
       const response = await this.retryApiCall(() => 
         this.openai.chat.completions.create({
-          model: "gpt-4.5-preview",
+          model: "gpt-4o",
           messages: [
             {
               role: "system",
@@ -881,7 +881,7 @@ Handle Arabic and English text. Do not include any markdown formatting or code b
 
       const response = await this.retryApiCall(() =>
         this.openai.chat.completions.create({
-          model: "gpt-4.5-preview",
+          model: "gpt-4o",
           messages: [
             {
               role: "system",
