@@ -615,7 +615,7 @@ Focus on the specific topics, categories, quality issues, and knowledge gaps fou
 
       const response = await this.retryApiCall(() =>
         this.openai.chat.completions.create({
-          model: "gpt-4o",
+          model: "gpt-4.5-preview",
           messages: [
             {
               role: "system",
@@ -676,7 +676,7 @@ Focus on the specific topics, categories, quality issues, and knowledge gaps fou
     try {
       const response = await this.retryApiCall(() => 
         this.openai.chat.completions.create({
-          model: "gpt-4o",
+          model: "gpt-4.5-preview",
           messages: [
             {
               role: "system",
@@ -881,7 +881,7 @@ Handle Arabic and English text. Do not include any markdown formatting or code b
 
       const response = await this.retryApiCall(() =>
         this.openai.chat.completions.create({
-          model: "gpt-4o",
+          model: "gpt-4.5-preview",
           messages: [
             {
               role: "system",
@@ -911,7 +911,6 @@ IMPORTANT:
             }
           ],
           temperature: 0.3,
-          max_tokens: 1200,
         })
       );
 
