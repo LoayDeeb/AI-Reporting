@@ -125,8 +125,10 @@ export class SupabaseDataProcessor {
       allRecs = analytics.flatMap(a => a.coachingOpportunities || []);
     }
     
-    const topTrends = countOccurrences(allTrends).slice(0, 8);
-    const topRecs = countOccurrences(allRecs).slice(0, 8);
+    const topTrends = countOccurrences(allTrends).slice(0, 8)
+      .map(([item, count]) => `${item} (${count}x)`);
+    const topRecs = countOccurrences(allRecs).slice(0, 8)
+      .map(([item, count]) => `${item} (${count}x)`);
     
     return {
       insights: `Analyzed ${analytics.length} conversations from database.`,

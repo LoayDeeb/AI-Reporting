@@ -104,7 +104,7 @@ export class AIAnalysisService {
 
     try {
       const response = await this.openai.chat.completions.create({
-        model: "gpt-4.1-nano",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -145,7 +145,7 @@ export class AIAnalysisService {
 
     try {
       const response = await this.openai.chat.completions.create({
-        model: "gpt-4.1-nano",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -205,7 +205,7 @@ export class AIAnalysisService {
 
     try {
       const response = await this.openai.chat.completions.create({
-        model: "gpt-4.1-nano",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -270,7 +270,7 @@ export class AIAnalysisService {
     try {
       const response = await this.retryApiCall(() =>
         this.openai.chat.completions.create({
-          model: "gpt-4.1-nano", 
+          model: "gpt-4o", 
         messages: [
           {
             role: "system",
@@ -329,7 +329,7 @@ export class AIAnalysisService {
     try {
       const response = await this.retryApiCall(() =>
         this.openai.chat.completions.create({
-        model: "gpt-4.1-nano",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -368,7 +368,7 @@ export class AIAnalysisService {
     try {
       const response = await this.retryApiCall(() =>
         this.openai.chat.completions.create({
-        model: "gpt-4.1-nano",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -615,7 +615,7 @@ Focus on the specific topics, categories, quality issues, and knowledge gaps fou
 
       const response = await this.retryApiCall(() =>
         this.openai.chat.completions.create({
-          model: "gpt-4.1-nano",
+          model: "gpt-4o",
           messages: [
             {
               role: "system",
@@ -676,7 +676,7 @@ Focus on the specific topics, categories, quality issues, and knowledge gaps fou
     try {
       const response = await this.retryApiCall(() => 
         this.openai.chat.completions.create({
-          model: "gpt-4.1-nano",
+          model: "gpt-4o",
           messages: [
             {
               role: "system",
@@ -834,29 +834,21 @@ Handle Arabic and English text. Do not include any markdown formatting or code b
         return acc;
       }, {});
 
-      // Get only TOP items with high frequency (MAJOR token reduction)
+      // Get all items sorted by frequency
       const topRecommendations = Object.entries(recommendationCounts)
         .sort(([,a], [,b]) => b - a)
-        .slice(0, 8) // Reduced from 15 to 8
-        .filter(([,count]) => count >= 2) // Only include items mentioned multiple times
         .map(([rec, count]) => `${rec} (${count}x, ${Math.round((count / analytics.length) * 100)}%)`);
 
       const topTrends = Object.entries(trendCounts)
         .sort(([,a], [,b]) => b - a)
-        .slice(0, 6) // Reduced from 12 to 6  
-        .filter(([,count]) => count >= 2)
         .map(([trend, count]) => `${trend} (${count}x, ${Math.round((count / analytics.length) * 100)}%)`);
 
       const topQualityIssues = Object.entries(qualityIssueCounts)
         .sort(([,a], [,b]) => b - a)
-        .slice(0, 5) // Reduced from 8 to 5
-        .filter(([,count]) => count >= 2)
         .map(([issue, count]) => `${issue} (${count}x, ${Math.round((count / analytics.length) * 100)}%)`);
 
       const topKnowledgeGaps = Object.entries(gapCounts)
         .sort(([,a], [,b]) => b - a)
-        .slice(0, 6) // Reduced from 8 to 6
-        .filter(([,count]) => count >= 2)
         .map(([gap, count]) => `${gap} (${count}x, ${Math.round((count / analytics.length) * 100)}%)`);
 
       // Calculate basic stats
@@ -867,22 +859,21 @@ Handle Arabic and English text. Do not include any markdown formatting or code b
         return acc;
       }, {});
 
-      // COMPACT DATA FORMAT - massive token reduction
       const compactSummary = [
         `📊 ANALYSIS OF ${totalConversations} CONVERSATIONS`,
         `Average Quality: ${avgQuality}%`,
         `Sentiment: ${Object.entries(sentimentCounts).map(([s, c]) => `${s}=${Math.round(c/totalConversations*100)}%`).join(', ')}`,
         '',
-        `🔧 TOP RECOMMENDATIONS (${Object.keys(recommendationCounts).length} unique):`,
+        `🔧 RECOMMENDATIONS FROM DATABASE (Sorted by frequency):`,
         ...topRecommendations,
         '',
-        `📈 TOP TRENDS (${Object.keys(trendCounts).length} unique):`,
+        `📈 TRENDS FROM DATABASE (Sorted by frequency):`,
         ...topTrends,
         '',
-        `⚠️ TOP QUALITY ISSUES (${Object.keys(qualityIssueCounts).length} unique):`,
+        `⚠️ QUALITY ISSUES FROM DATABASE (Sorted by frequency):`,
         ...topQualityIssues,
         '',
-        `🧠 TOP KNOWLEDGE GAPS (${Object.keys(gapCounts).length} unique):`,
+        `🧠 KNOWLEDGE GAPS FROM DATABASE (Sorted by frequency):`,
         ...topKnowledgeGaps
       ].join('\n');
 
@@ -890,20 +881,29 @@ Handle Arabic and English text. Do not include any markdown formatting or code b
 
       const response = await this.retryApiCall(() =>
         this.openai.chat.completions.create({
-          model: "gpt-4.1-nano",
+          model: "gpt-4o",
           messages: [
             {
               role: "system",
               content: `You are a chatbot performance analyst. Analyze the consolidated data from ${totalConversations} individual conversations and provide platform-level insights.
 
-Create comprehensive insights based on the frequency data provided. Focus on the most common patterns.
+The input contains ALL aggregated Recommendations, Trends, Quality Issues, and Knowledge Gaps from the database analysis of ${totalConversations} conversations, sorted by frequency.
+
+YOUR TASK:
+1. Review the full list of "RECOMMENDATIONS" and "TRENDS" provided in the input.
+2. Identify the most significant and frequent patterns.
+3. Refine and polish them into a professional executive summary.
+4. Return them as the final insights.
 
 Return ONLY a valid JSON object with:
-- 'insights': A comprehensive paragraph analyzing the performance patterns, mentioning specific percentages and most frequent issues
-- 'recommendations': Array of 6-8 prioritized, actionable recommendations based on the most frequent patterns
-- 'trends': Array of 5-7 key trends based on the frequency analysis
+- 'insights': A comprehensive paragraph analyzing the performance patterns, mentioning specific percentages and most frequent issues found in the data.
+- 'recommendations': Array of 6-8 prioritized, actionable recommendations. Select the most impactful ones from the provided list.
+- 'trends': Array of 5-7 key trends. Select the most impactful ones from the provided list.
 
-Be specific about percentages and frequencies. Prioritize high-frequency items.`
+IMPORTANT:
+- Do NOT invent new trends or recommendations. Use the ones provided in the input.
+- Mention the frequency/percentage if available in the input to add credibility.
+- If the input lists specific technical issues or gaps, make sure to include them.`
             },
             {
               role: "user",
