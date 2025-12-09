@@ -89,7 +89,7 @@ const Conversations = () => {
   const loadConversations = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/conversations?limit=5000&offset=0&sourceType=ai');
+      const response = await fetch('/api/conversations?limit=10000&offset=0&sourceType=ai');
       const data = await response.json();
       
       if (data.conversations) {
