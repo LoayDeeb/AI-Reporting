@@ -1,118 +1,94 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DataProcessor } from '../../../lib/data-processor';
-
-// Cache for transformed conversations to avoid repeated processing
-let conversationsCache: any[] | null = null;
-let cacheTimestamp: number = 0;
-const CACHE_DURATION = Infinity; // Cache persists forever
+import { supabase } from '../../../lib/supabase';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '1000'); // Default to 1000 for performance
+    const limit = parseInt(searchParams.get('limit') || '1000');
     const offset = parseInt(searchParams.get('offset') || '0');
+    const sourceType = searchParams.get('sourceType') || 'ai';
     
-    const dataProcessor = new DataProcessor();
-    
-    // Load cached analytics data
-    const cache = await dataProcessor.loadCache();
-    
-    if (!cache || !cache.analytics || cache.analytics.length === 0) {
+    console.log(`🔍 Fetching conversations from Supabase (source: ${sourceType}, limit: ${limit}, offset: ${offset})...`);
+
+    const { data, error, count } = await supabase
+      .from('conversations')
+      .select('*', { count: 'exact' })
+      .eq('source_type', sourceType)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error('Supabase Error:', error);
       return NextResponse.json({
         conversations: [],
-        message: 'No conversation data available. Please run an analysis first.'
+        total: 0,
+        error: error.message
       });
     }
 
-    // Check if we have valid cached conversations
-    const now = Date.now();
-    if (conversationsCache && (now - cacheTimestamp) < CACHE_DURATION) {
-      console.log('Returning paginated cached conversations');
-      const paginatedCached = conversationsCache.slice(offset, offset + limit);
+    if (!data || data.length === 0) {
       return NextResponse.json({
-        conversations: paginatedCached,
-        total: cache.analytics.length, // Total from original analytics
-        page: Math.floor(offset / limit) + 1,
-        limit: limit,
-        hasMore: (offset + limit) < cache.analytics.length,
-        message: `Conversations loaded from cache (${paginatedCached.length} of ${cache.analytics.length})`
+        conversations: [],
+        total: 0,
+        message: 'No conversations found. Run an analysis from the dashboard first.'
       });
     }
 
-    console.log('Transforming analytics data to conversations...');
-    
-    // Transform ALL analytics data to conversation format (cache all, paginate on return)
-    const allConversations = cache.analytics.map((analytics: any, index: number) => {
-      // Determine status based on comprehensive escalation criteria (aligned with dashboard logic)
-      const hasKnowledgeGaps = analytics.knowledgeGaps && analytics.knowledgeGaps.length > 0;
-      const qualityScore = Math.round(analytics.qualityScore || 0);
-      const sentiment = analytics.sentiment || 'neutral';
+    console.log(`✅ Loaded ${data.length} conversations from Supabase`);
+
+    const conversations = data.map((row, index) => {
+      const qualityScore = Math.round(row.quality_score || 0);
+      const sentiment = row.sentiment || 'neutral';
+      const hasKnowledgeGaps = row.knowledge_gaps && row.knowledge_gaps.length > 0;
       
       let status = 'Completed';
-      
-      // True escalation: negative sentiment + low quality + knowledge gaps
       if (sentiment === 'negative' && qualityScore < 50 && hasKnowledgeGaps) {
         status = 'Escalated';
-      } 
-      // Needs attention: has knowledge gaps but good sentiment/quality
-      else if (hasKnowledgeGaps) {
+      } else if (hasKnowledgeGaps) {
         status = 'Needs Review';
-      } 
-      // Quality issues: low quality without knowledge gaps
-      else if (qualityScore < 50) {
+      } else if (qualityScore < 50) {
         status = 'Pending';
       }
 
-      // Create a timestamp (optimized calculation)
-      const timestamp = new Date(Date.UTC(2024, 0, 20, 10, 0, 0) + (index * 15 * 60 * 1000));
+      const durationSeconds = row.duration_seconds || 0;
+      const minutes = Math.floor(durationSeconds / 60);
+      const seconds = durationSeconds % 60;
 
       return {
-        id: `CONV-${String(index + 1).padStart(4, '0')}`,
-        senderID: analytics.senderID,
-        timestamp: timestamp.toISOString(),
-        sentiment: analytics.sentiment || 'neutral',
+        id: row.id,
+        senderID: row.source_id,
+        timestamp: row.started_at || row.created_at,
+        sentiment: sentiment,
         qualityScore: qualityScore,
-        intent: analytics.intent || 'general_inquiry',
-        duration: `${Math.floor((analytics.firstResponseTime || 0) / 60000)}m ${Math.floor(((analytics.firstResponseTime || 0) % 60000) / 1000)}s`,
+        intent: row.intent || 'general_inquiry',
+        duration: durationSeconds > 0 ? `${minutes}m ${seconds}s` : 'N/A',
         status: status,
-        messages: analytics.conversationLength || 0,
-        conversationLength: analytics.conversationLength || 0,
-        firstResponseTime: analytics.firstResponseTime,
-        knowledgeGaps: analytics.knowledgeGaps || [],
-        recommendations: analytics.recommendations || [],
-        trends: analytics.trends || []
+        messages: row.message_count || 0,
+        conversationLength: row.message_count || 0,
+        firstResponseTime: row.first_response_time_ms,
+        knowledgeGaps: row.knowledge_gaps || [],
+        recommendations: row.recommendations || [],
+        trends: row.trends || [],
+        topics: row.topics || [],
+        subCategories: row.sub_categories || [],
+        summary: row.summary || ''
       };
     });
 
-    // Cache ALL transformed conversations
-    conversationsCache = allConversations;
-    cacheTimestamp = now;
-
-    // Return paginated subset
-    const paginatedConversations = allConversations.slice(offset, offset + limit);
-
-    // Debug logging (reduced)
-    console.log('API Debug:', {
-      totalConversations: allConversations.length,
-      returnedConversations: paginatedConversations.length,
-      sentiments: [...new Set(paginatedConversations.map((c: any) => c.sentiment))],
-      cached: true
-    });
-
     return NextResponse.json({
-      conversations: paginatedConversations,
-      total: cache.analytics.length, // Total count from all analytics
+      conversations,
+      total: count || data.length,
       page: Math.floor(offset / limit) + 1,
       limit: limit,
-      hasMore: (offset + limit) < cache.analytics.length,
-      message: `Conversations loaded successfully (${paginatedConversations.length} of ${cache.analytics.length})`
+      hasMore: (offset + limit) < (count || data.length),
+      message: `Loaded ${conversations.length} conversations from database`
     });
 
   } catch (error) {
     console.error('Error loading conversations:', error);
     return NextResponse.json(
-      { error: 'Failed to load conversations' },
+      { error: 'Failed to load conversations', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
-} 
+}

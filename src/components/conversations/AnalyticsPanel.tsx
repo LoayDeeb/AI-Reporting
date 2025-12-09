@@ -7,6 +7,13 @@ import {
   ThumbsUpIcon,
   ClockIcon,
   MessagesSquareIcon,
+  HeartIcon,
+  AlertTriangleIcon,
+  FileCheckIcon,
+  ActivityIcon,
+  ZapIcon,
+  TrendingUpIcon,
+  LightbulbIcon,
 } from 'lucide-react';
 
 interface AnalyticsPanelProps {
@@ -23,6 +30,14 @@ interface AnalyticsPanelProps {
       device: string;
       location: string;
     };
+    // Human Agent specific fields
+    empathyScore?: number;
+    escalationRisk?: number;
+    scriptAdherence?: number;
+    customerEffortScore?: number;
+    coachingOpportunities?: string[];
+    churnSignals?: string[];
+    rootCauses?: string[];
   };
   conversationData?: any;
 }
@@ -64,6 +79,39 @@ const AnalyticsPanel = ({ conversation, conversationData }: AnalyticsPanelProps)
     },
   ];
 
+  // Add Human Agent metrics if available
+  if (conversation.empathyScore !== undefined) {
+    metrics.push({
+      label: 'Empathy Score',
+      value: `${conversation.empathyScore}%`,
+      icon: <HeartIcon className="text-pink-400" size={16} />,
+    });
+  }
+
+  if (conversation.escalationRisk !== undefined) {
+    metrics.push({
+      label: 'Escalation Risk',
+      value: `${conversation.escalationRisk}%`,
+      icon: <AlertTriangleIcon className="text-orange-400" size={16} />,
+    });
+  }
+
+  if (conversation.scriptAdherence !== undefined) {
+    metrics.push({
+      label: 'Script Adherence',
+      value: `${conversation.scriptAdherence}%`,
+      icon: <FileCheckIcon className="text-blue-400" size={16} />,
+    });
+  }
+
+  if (conversation.customerEffortScore !== undefined) {
+    metrics.push({
+      label: 'Effort Score',
+      value: `${conversation.customerEffortScore}/10`,
+      icon: <ActivityIcon className="text-green-400" size={16} />,
+    });
+  }
+
   return (
     <div className="space-y-6">
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 p-6">
@@ -85,6 +133,7 @@ const AnalyticsPanel = ({ conversation, conversationData }: AnalyticsPanelProps)
           </div>
         </div>
       </div>
+      
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 p-6">
         <h3 className="text-lg font-semibold text-white mb-4">Analytics</h3>
         <div className="grid grid-cols-1 gap-4">
@@ -104,6 +153,41 @@ const AnalyticsPanel = ({ conversation, conversationData }: AnalyticsPanelProps)
           ))}
         </div>
       </div>
+
+      {/* Detailed Insights for Human Agents */}
+      {(conversation.coachingOpportunities?.length ? conversation.coachingOpportunities.length > 0 : false) && (
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 p-6">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+            <LightbulbIcon className="text-yellow-400 mr-2" size={18} />
+            Coaching Opportunities
+          </h3>
+          <ul className="space-y-2">
+            {conversation.coachingOpportunities?.map((item, i) => (
+              <li key={i} className="flex items-start text-sm text-gray-300">
+                <span className="mr-2 text-yellow-500">•</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {(conversation.churnSignals?.length ? conversation.churnSignals.length > 0 : false) && (
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 p-6">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+            <TrendingUpIcon className="text-red-400 mr-2" size={18} />
+            Churn Signals
+          </h3>
+          <ul className="space-y-2">
+            {conversation.churnSignals?.map((item, i) => (
+              <li key={i} className="flex items-start text-sm text-gray-300">
+                <span className="mr-2 text-red-500">•</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

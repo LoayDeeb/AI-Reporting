@@ -130,6 +130,7 @@ const Filters = ({ activeFilters, onFilterChange, conversations }: FiltersProps)
               onFilterChange({
                 sentiment: [],
                 qualityScore: [0, 100],
+                status: [],
                 dateRange: { from: null, to: null },
                 topics: [],
               });

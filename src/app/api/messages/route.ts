@@ -3,11 +3,75 @@ import { ChunkIndexer } from '../../../lib/chunk-indexer';
 import { DataProcessor } from '../../../lib/data-processor';
 import fs from 'fs';
 import path from 'path';
+import { supabase } from '../../../lib/supabase';
 
-// Function to get human agent conversation details from CSV data
+// Function to get human agent conversation details
 async function getHumanAgentConversation(conversationId: string) {
   try {
     console.log(`🔍 Loading human agent conversation: ${conversationId}`);
+    
+    // 1. Try fetching from Supabase first
+    if (supabase) {
+      console.log('   Trying Supabase...');
+      // Get conversation first to get metadata (agent name, etc)
+      const { data: conv, error: convError } = await supabase
+        .from('conversations')
+        .select('*')
+        .eq('source_id', conversationId)
+        .eq('source_type', 'human')
+        .single();
+
+      if (conv && !convError) {
+        console.log('   ✅ Found conversation in Supabase');
+        
+        // Get messages
+        const { data: dbMessages, error: msgError } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('conversation_id', conv.id)
+          .order('timestamp', { ascending: true });
+
+        if (dbMessages && !msgError && dbMessages.length > 0) {
+          console.log(`   ✅ Found ${dbMessages.length} messages in Supabase`);
+          
+          // Transform messages to frontend format
+          const messages = dbMessages.map((msg, index) => ({
+            id: msg.id,
+            text: msg.content,
+            timestamp: msg.timestamp,
+            sender: msg.sender_role === 'agent' ? 'agent' : 'customer',
+            senderName: msg.sender_role === 'agent' 
+              ? (conv.agent_name || 'Agent') 
+              : (conv.customer_name || 'Customer'),
+            sentiment: msg.sentiment || (index === 0 ? conv.sentiment : 'neutral')
+          }));
+
+          return NextResponse.json({
+            conversationId,
+            messageCount: messages.length,
+            messages,
+            agentName: conv.agent_name,
+            customerName: conv.customer_name,
+            qualityScore: conv.quality_score,
+            empathyScore: conv.empathy_score,
+            escalationRisk: conv.escalation_risk,
+            sentiment: {
+              initial: conv.sentiment_change?.split('→')[0]?.trim() || conv.sentiment,
+              final: conv.sentiment,
+              change: conv.sentiment_change
+            },
+            loadTime: new Date().toISOString(),
+            method: 'supabase',
+            source: 'database'
+          });
+        } else {
+          console.log('   ⚠️ Conversation found but no messages in DB. Falling back to cache...');
+        }
+      }
+    }
+
+    // 2. Fallback to File Cache
+    console.log('   ⚠️ Falling back to file cache...');
     
     // Load human agent analysis cache to get conversation details
     const cacheFilePath = path.join(process.cwd(), 'data', 'human-agent-analysis-cache.json');
@@ -167,6 +231,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const senderID = searchParams.get('senderID');
     const conversationId = searchParams.get('conversationId');
+    const id = searchParams.get('id'); // Supabase conversation UUID
     const type = searchParams.get('type');
 
     // Handle human agent conversation lookup
@@ -174,9 +239,65 @@ export async function GET(request: NextRequest) {
       return await getHumanAgentConversation(conversationId);
     }
 
+    // Handle Supabase conversation ID lookup (UUID format)
+    if (id) {
+      console.log(`🔍 Loading messages from Supabase for conversation ID: ${id}`);
+      
+      const { data: messages, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', id)
+        .order('timestamp', { ascending: true });
+
+      if (error) {
+        console.error('Supabase Error:', error);
+        return NextResponse.json(
+          { error: 'Failed to load messages from database', details: error.message },
+          { status: 500 }
+        );
+      }
+
+      if (!messages || messages.length === 0) {
+        console.log('⚠️ No messages found in database for this conversation');
+        return NextResponse.json({
+          conversationId: id,
+          messageCount: 0,
+          messages: [],
+          method: 'supabase',
+          source: 'database',
+          message: 'No messages found for this conversation'
+        });
+      }
+
+      console.log(`✅ Loaded ${messages.length} messages from Supabase`);
+
+      const formattedMessages = messages.map((msg: any) => ({
+        ID: msg.id,
+        id: msg.id,
+        MessageText: msg.content,
+        text: msg.content,
+        content: msg.content,
+        from: msg.sender_role === 'bot' || msg.sender_role === 'agent' ? 'bot' : 'user',
+        sender: msg.sender_role,
+        TimeSent: msg.timestamp,
+        timestamp: msg.timestamp,
+        sentiment: msg.sentiment,
+        intent: msg.intent_detected
+      }));
+
+      return NextResponse.json({
+        conversationId: id,
+        messageCount: formattedMessages.length,
+        messages: formattedMessages,
+        method: 'supabase',
+        source: 'database',
+        loadTime: new Date().toISOString()
+      });
+    }
+
     if (!senderID) {
       return NextResponse.json(
-        { error: 'senderID parameter is required' },
+        { error: 'senderID or id parameter is required' },
         { status: 400 }
       );
     }

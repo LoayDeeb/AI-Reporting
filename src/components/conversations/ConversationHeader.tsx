@@ -24,9 +24,10 @@ interface ConversationHeaderProps {
     conversationLength?: number;
     firstResponseTime?: number;
   };
+  backLink?: string;
 }
 
-const ConversationHeader = ({ conversation }: ConversationHeaderProps) => {
+const ConversationHeader = ({ conversation, backLink = '/conversations' }: ConversationHeaderProps) => {
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment.toLowerCase()) {
       case 'positive':
@@ -46,7 +47,7 @@ const ConversationHeader = ({ conversation }: ConversationHeaderProps) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Link
-              href="/conversations"
+              href={backLink}
               className="hover:bg-gray-700/50 p-2 rounded-lg transition-colors"
             >
               <ArrowLeftIcon className="text-gray-400" size={20} />

@@ -1,11 +1,27 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import SearchBar from '../../../components/conversations/SearchBar';
 import Navigation from '../../../components/Navigation';
-import { Users, MessageSquareIcon, Star, Heart, AlertTriangle, CheckCircle, Clock, User, Filter, Search, ChevronLeft, ChevronRight, LoaderIcon } from 'lucide-react';
+import { 
+  Users, 
+  MessageSquareIcon, 
+  Star, 
+  Heart, 
+  AlertTriangle, 
+  Clock, 
+  Search, 
+  ChevronLeft, 
+  ChevronRight, 
+  LoaderIcon,
+  Database,
+  RefreshCw,
+  ThumbsUp,
+  ThumbsDown,
+  Minus
+} from 'lucide-react';
 
 export interface HumanAgentConversationData {
+  id: string;
   conversation_id: string;
   agent_name: string;
   customer_name: string;
@@ -28,6 +44,7 @@ export interface HumanAgentConversationData {
   customer_effort_score: number;
   sentiment_impact: string;
   emotions: string[];
+  timestamp?: string;
 }
 
 export interface HumanAgentFilterState {
@@ -36,7 +53,6 @@ export interface HumanAgentFilterState {
   empathyScore: number[];
   escalationRisk: number[];
   agents: string[];
-  categories: string[];
 }
 
 const ITEMS_PER_PAGE = 25;
@@ -53,10 +69,8 @@ const HumanAgentConversations = () => {
     empathyScore: [0, 100],
     escalationRisk: [0, 100],
     agents: [],
-    categories: [],
   });
 
-  // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
@@ -66,20 +80,20 @@ const HumanAgentConversations = () => {
   }, [searchQuery]);
 
   useEffect(() => {
-    loadHumanAgentConversations();
+    loadConversations();
   }, []);
 
-  const loadHumanAgentConversations = useCallback(async () => {
+  const loadConversations = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/analyze-human-agents?action=analyze');
+      const response = await fetch('/api/human-agents/conversations?limit=5000&offset=0');
       const data = await response.json();
       
-      if (data.analytics) {
-        setConversations(data.analytics);
-        console.log('✅ Human agent conversations loaded:', {
-          received: data.analytics.length,
-          total: data.total_conversations
+      if (data.conversations) {
+        setConversations(data.conversations);
+        console.log('✅ Human agent conversations loaded from database:', {
+          received: data.conversations.length,
+          total: data.total
         });
       } else {
         console.log('❌ No human agent conversations in API response:', data);
@@ -91,17 +105,15 @@ const HumanAgentConversations = () => {
     }
   }, []);
 
-  const handleSearchChange = useCallback((query: string) => {
-    setSearchQuery(query);
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
     setCurrentPage(1);
   }, []);
 
-  // Filter conversations
   const filteredConversations = React.useMemo(() => {
     if (conversations.length === 0) return [];
     
     return conversations.filter((conv) => {
-      // Search filter
       if (debouncedSearchQuery) {
         const query = debouncedSearchQuery.toLowerCase();
         if (
@@ -114,14 +126,18 @@ const HumanAgentConversations = () => {
         }
       }
 
-      // Sentiment filter
       if (activeFilters.sentiment.length > 0) {
         if (!activeFilters.sentiment.includes(conv.final_sentiment)) {
           return false;
         }
       }
 
-      // Quality score filter
+      if (activeFilters.agents.length > 0) {
+        if (!activeFilters.agents.includes(conv.agent_name)) {
+          return false;
+        }
+      }
+
       if (
         conv.quality_score < activeFilters.qualityScore[0] ||
         conv.quality_score > activeFilters.qualityScore[1]
@@ -129,7 +145,6 @@ const HumanAgentConversations = () => {
         return false;
       }
 
-      // Empathy score filter
       if (
         conv.empathy_score < activeFilters.empathyScore[0] ||
         conv.empathy_score > activeFilters.empathyScore[1]
@@ -137,7 +152,6 @@ const HumanAgentConversations = () => {
         return false;
       }
 
-      // Escalation risk filter
       if (
         conv.escalation_risk < activeFilters.escalationRisk[0] ||
         conv.escalation_risk > activeFilters.escalationRisk[1]
@@ -145,18 +159,10 @@ const HumanAgentConversations = () => {
         return false;
       }
 
-      // Agent filter
-      if (activeFilters.agents.length > 0) {
-        if (!activeFilters.agents.includes(conv.agent_name)) {
-          return false;
-        }
-      }
-
       return true;
     });
   }, [conversations, debouncedSearchQuery, activeFilters]);
 
-  // Paginated conversations
   const paginatedConversations = React.useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
@@ -165,15 +171,24 @@ const HumanAgentConversations = () => {
 
   const totalPages = Math.ceil(filteredConversations.length / ITEMS_PER_PAGE);
 
-  // Get unique agents for filter
   const uniqueAgents = React.useMemo(() => {
     return [...new Set(conversations.map(conv => conv.agent_name))].sort();
   }, [conversations]);
 
-  // Get unique sentiments for filter
   const uniqueSentiments = React.useMemo(() => {
     return [...new Set(conversations.map(conv => conv.final_sentiment))].sort();
   }, [conversations]);
+
+  const getSentimentIcon = (sentiment: string) => {
+    switch (sentiment.toLowerCase()) {
+      case 'positive':
+        return <ThumbsUp className="h-4 w-4" />;
+      case 'negative':
+        return <ThumbsDown className="h-4 w-4" />;
+      default:
+        return <Minus className="h-4 w-4" />;
+    }
+  };
 
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment.toLowerCase()) {
@@ -207,6 +222,24 @@ const HumanAgentConversations = () => {
     return `${minutes}m ${seconds}s`;
   };
 
+  const stats = React.useMemo(() => {
+    if (filteredConversations.length === 0) return null;
+    
+    const total = filteredConversations.length;
+    const avgQuality = filteredConversations.reduce((sum, c) => sum + c.quality_score, 0) / total;
+    const avgEmpathy = filteredConversations.reduce((sum, c) => sum + c.empathy_score, 0) / total;
+    const avgEscalation = filteredConversations.reduce((sum, c) => sum + c.escalation_risk, 0) / total;
+    const uniqueAgentCount = new Set(filteredConversations.map(c => c.agent_name)).size;
+
+    return {
+      total,
+      avgQuality: Math.round(avgQuality),
+      avgEmpathy: Math.round(avgEmpathy),
+      avgEscalation: Math.round(avgEscalation),
+      agents: uniqueAgentCount
+    };
+  }, [filteredConversations]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 text-white">
@@ -215,7 +248,7 @@ const HumanAgentConversations = () => {
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 p-8">
             <div className="flex items-center justify-center">
               <LoaderIcon className="animate-spin text-blue-400 mr-3" size={24} />
-              <span className="text-gray-300">Loading human agent conversations...</span>
+              <span className="text-gray-300">Loading human agent conversations from database...</span>
             </div>
           </div>
         </div>
@@ -229,44 +262,87 @@ const HumanAgentConversations = () => {
       <div className="container mx-auto px-4 py-8 pt-24">
         {/* Header */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 p-8 mb-8">
-          {/* Background Pattern */}
           <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
           
-          {/* Floating Elements */}
           <div className="absolute top-4 right-4 w-32 h-32 bg-white/5 rounded-full blur-xl"></div>
           <div className="absolute bottom-4 left-4 w-24 h-24 bg-white/5 rounded-full blur-xl"></div>
           
           <div className="relative z-10">
-            <div className="flex items-center mb-4">
-              <div className="p-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 mr-4">
-                <MessageSquareIcon className="h-8 w-8 text-white" />
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <div className="p-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 mr-4">
+                  <Users className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/90">
+                    Human Agent Conversations
+                  </h1>
+                  <p className="text-white/70 mt-2 text-lg">
+                    Detailed conversation analysis and performance insights
+                  </p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/90">
-                  Human Agent Conversations
-                </h1>
-                <p className="text-white/70 mt-2 text-lg">
-                  Detailed conversation analysis and performance insights
-                </p>
+
+              {/* Database Status & Refresh */}
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-md rounded-xl px-4 py-2 border border-white/20">
+                  <Database className="h-4 w-4 text-emerald-400" />
+                  <span className="text-sm text-white/70">Supabase</span>
+                </div>
+                <button
+                  onClick={loadConversations}
+                  disabled={loading}
+                  className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl px-4 py-2 border border-white/20 transition-all duration-200"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                  <span className="text-sm">Refresh</span>
+                </button>
               </div>
             </div>
             
-            <div className="flex items-center space-x-4 mt-6">
-              <span className="px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-white/90 text-sm border border-white/20">
-                <MessageSquareIcon className="h-4 w-4 inline mr-1" />
-                {filteredConversations.length} conversations
-              </span>
-              {filteredConversations.length !== conversations.length && (
-                <span className="px-3 py-1 bg-amber-500/20 backdrop-blur-md rounded-full text-amber-300 text-sm border border-amber-500/30">
-                  Filtered from {conversations.length} total
-                </span>
-              )}
-            </div>
+            {/* Stats Summary */}
+            {stats && (
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6">
+                <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 border border-white/20">
+                  <p className="text-white/70 text-xs">Total</p>
+                  <p className="text-2xl font-bold text-white">{stats.total}</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 border border-white/20">
+                  <p className="text-white/70 text-xs">Agents</p>
+                  <p className="text-2xl font-bold text-white">{stats.agents}</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 border border-white/20">
+                  <p className="text-white/70 text-xs">Avg Quality</p>
+                  <p className="text-2xl font-bold text-emerald-300">{stats.avgQuality}%</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 border border-white/20">
+                  <p className="text-white/70 text-xs">Avg Empathy</p>
+                  <p className="text-2xl font-bold text-fuchsia-300">{stats.avgEmpathy}%</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 border border-white/20">
+                  <p className="text-white/70 text-xs">Avg Escalation</p>
+                  <p className="text-2xl font-bold text-amber-300">{stats.avgEscalation}%</p>
+                </div>
+              </div>
+            )}
+
+            {/* No Data Warning */}
+            {conversations.length === 0 && !loading && (
+              <div className="mt-6 bg-amber-500/20 border border-amber-500/30 rounded-lg p-4">
+                <div className="flex items-center space-x-3">
+                  <AlertTriangle className="h-5 w-5 text-amber-400" />
+                  <div>
+                    <p className="text-amber-200 font-medium">No conversations found in database</p>
+                    <p className="text-amber-200/70 text-sm">Run a Human Agent analysis from the Dashboard first to populate conversation data.</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Search and Filters */}
+        {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-[350px,1fr] gap-6 mb-8">
           {/* Filters Sidebar */}
           <div className="space-y-6">
@@ -276,13 +352,19 @@ const HumanAgentConversations = () => {
                 <Search className="h-5 w-5 text-gray-400 mr-2" />
                 <h3 className="text-lg font-semibold text-white">Search</h3>
               </div>
-              <SearchBar onSearch={handleSearchChange} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder="Search by agent, customer, ID..."
+                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              />
             </div>
 
             {/* Agent Filter */}
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
               <div className="flex items-center mb-4">
-                <User className="h-5 w-5 text-blue-400 mr-2" />
+                <Users className="h-5 w-5 text-blue-400 mr-2" />
                 <h3 className="text-lg font-semibold text-white">Agents</h3>
               </div>
               <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -341,13 +423,78 @@ const HumanAgentConversations = () => {
                       }}
                       className="rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500"
                     />
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSentimentColor(sentiment)}`}>
-                      {sentiment}
+                    <span className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getSentimentColor(sentiment)}`}>
+                      {getSentimentIcon(sentiment)}
+                      <span className="capitalize">{sentiment}</span>
                     </span>
                   </label>
                 ))}
               </div>
             </div>
+
+            {/* Quality Score Filter */}
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
+              <div className="flex items-center mb-4">
+                <Star className="h-5 w-5 text-amber-400 mr-2" />
+                <h3 className="text-lg font-semibold text-white">Quality Score</h3>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between text-sm text-gray-400">
+                  <span>{activeFilters.qualityScore[0]}%</span>
+                  <span>{activeFilters.qualityScore[1]}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={activeFilters.qualityScore[0]}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    setActiveFilters(prev => ({
+                      ...prev,
+                      qualityScore: [val, prev.qualityScore[1]]
+                    }));
+                    setCurrentPage(1);
+                  }}
+                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                />
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={activeFilters.qualityScore[1]}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    setActiveFilters(prev => ({
+                      ...prev,
+                      qualityScore: [prev.qualityScore[0], val]
+                    }));
+                    setCurrentPage(1);
+                  }}
+                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+            </div>
+
+            {/* Clear Filters */}
+            {(activeFilters.sentiment.length > 0 || activeFilters.agents.length > 0 || 
+              activeFilters.qualityScore[0] !== 0 || activeFilters.qualityScore[1] !== 100) && (
+              <button
+                onClick={() => {
+                  setActiveFilters({
+                    sentiment: [],
+                    qualityScore: [0, 100],
+                    empathyScore: [0, 100],
+                    escalationRisk: [0, 100],
+                    agents: [],
+                  });
+                  setCurrentPage(1);
+                }}
+                className="w-full px-4 py-3 bg-gray-700/50 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-sm font-medium"
+              >
+                Clear All Filters
+              </button>
+            )}
           </div>
 
           {/* Conversations Table */}
@@ -391,7 +538,7 @@ const HumanAgentConversations = () => {
                 <h3 className="text-lg font-medium text-gray-300 mb-2">No Conversations Found</h3>
                 <p className="text-gray-400">
                   {conversations.length === 0 
-                    ? "Run a human agent analysis first to see conversation data here."
+                    ? "Run a Human Agent analysis from the Dashboard first to populate conversation data."
                     : "Try adjusting your search criteria or filters."
                   }
                 </p>
@@ -406,18 +553,18 @@ const HumanAgentConversations = () => {
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Quality</th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Empathy</th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Sentiment</th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Escalation Risk</th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Escalation</th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Messages</th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Resolution</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedConversations.map((conv, index) => (
+                    {paginatedConversations.map((conv) => (
                       <tr 
-                        key={conv.conversation_id} 
+                        key={conv.id} 
                         className="border-b border-gray-700/50 hover:bg-gray-700/20 transition-colors cursor-pointer"
                         onClick={() => {
-                          window.location.href = `/human-agents/conversations/${conv.conversation_id}`;
+                          window.location.href = `/human-agents/conversations/${conv.id}`;
                         }}
                       >
                         <td className="px-6 py-4">
@@ -427,7 +574,7 @@ const HumanAgentConversations = () => {
                             </div>
                             <div>
                               <p className="text-white font-medium">{conv.agent_name}</p>
-                              <p className="text-gray-400 text-xs">ID: {conv.conversation_id.slice(-8)}</p>
+                              <p className="text-gray-400 text-xs">ID: {conv.id.slice(0, 8)}...</p>
                             </div>
                           </div>
                         </td>
@@ -451,8 +598,9 @@ const HumanAgentConversations = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${getSentimentColor(conv.final_sentiment)}`}>
-                            {conv.final_sentiment}
+                          <span className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium w-fit ${getSentimentColor(conv.final_sentiment)}`}>
+                            {getSentimentIcon(conv.final_sentiment)}
+                            <span className="capitalize">{conv.final_sentiment}</span>
                           </span>
                         </td>
                         <td className="px-6 py-4">
@@ -518,4 +666,4 @@ const HumanAgentConversations = () => {
   );
 };
 
-export default HumanAgentConversations; 
+export default HumanAgentConversations;

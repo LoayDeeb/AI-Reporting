@@ -47,7 +47,7 @@ const ConversationList = ({
       activeFilters,
       searchQuery,
       firstConversation: conversations[0], // Debug: show first conversation
-      isZainjoData: conversations[0]?.dataSource === 'zainjo' || conversations[0]?.id?.startsWith('ZAINJO-')
+      isZainjoData: (conversations[0] as any)?.dataSource === 'zainjo' || conversations[0]?.id?.startsWith('ZAINJO-')
     });
     
     const filtered = conversations.filter((conv) => {
@@ -85,7 +85,7 @@ const ConversationList = ({
       originalCount: conversations.length,
       filteredCount: filtered.length,
       firstFilteredConversation: filtered[0], // Debug: show first filtered conversation
-      isFilteredZainjoData: filtered[0]?.dataSource === 'zainjo' || filtered[0]?.id?.startsWith('ZAINJO-')
+      isFilteredZainjoData: (filtered[0] as any)?.dataSource === 'zainjo' || filtered[0]?.id?.startsWith('ZAINJO-')
     });
     
     return filtered;
@@ -231,12 +231,12 @@ const ConversationList = ({
                       {conv.id}
                     </span>
                     {/* Visual indicator for data source */}
-                    {(conv.dataSource === 'zainjo' || conv.id.startsWith('ZAINJO-')) && (
+                    {((conv as any).dataSource === 'zainjo' || conv.id.startsWith('ZAINJO-')) && (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-900/50 text-orange-300 border border-orange-500/30">
                         Zainjo
                       </span>
                     )}
-                    {(!conv.dataSource || conv.dataSource !== 'zainjo') && !conv.id.startsWith('ZAINJO-') && (
+                    {(!(conv as any).dataSource || (conv as any).dataSource !== 'zainjo') && !conv.id.startsWith('ZAINJO-') && (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-900/50 text-blue-300 border border-blue-500/30">
                         Regular
                       </span>
