@@ -43,6 +43,48 @@ function isBotWelcomeMessage(text) {
   return text.includes(BOT_WELCOME_PHRASE) || text.includes(BOT_WELCOME_PHRASE_AR);
 }
 
+function extractAgentName(humanMessages) {
+  // Method 1: Look for @@agentname pattern (most reliable)
+  const atPattern = /@@([^\s@,،.。!?]+)/;
+  for (const msg of humanMessages) {
+    const text = msg.MessageText || '';
+    const atMatch = text.match(atPattern);
+    if (atMatch && atMatch[1] && atMatch[1].length > 1) {
+      return atMatch[1].trim();
+    }
+  }
+  
+  // Method 2: Look for agent introduction patterns in first few messages
+  const introPatterns = [
+    // English patterns
+    /(?:This is|I'm|I am)\s+(\w+)\s+from\s+(?:Like\s*Card|لايك\s*كارد)/i,
+    /Welcome.*I'm\s+(\w+)\s+from/i,
+    /(\w+)\s+is\s+talking\s+to\s+you\s+from\s+(?:Like\s*Card)/i,
+    // Arabic patterns - "معك [name] من" or "معاك [name] من"
+    /معك\s+(\S+)\s+من/,
+    /معاك\s+(\S+)\s+من/,
+    /معك\s*\(?\s*(\S+)\s*\)?\s*من/,
+    /معك\s+([^\s]+)\s+من\s+(?:موقع\s+)?(?:فريق\s+)?(?:لايك|Like)/i,
+    /معك\s+(\S+)\s+\S+\s+من\s+(?:موقع|فريق)/,
+  ];
+  
+  for (const msg of humanMessages.slice(0, 5)) {
+    const text = msg.MessageText || '';
+    if (msg.from !== 'user' && msg.bot !== false) {
+      for (const pattern of introPatterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+          const name = match[1].replace(/[()]/g, '').trim();
+          if (name.length > 1 && !/^[\s\u0600-\u06FF]{0,1}$/.test(name)) {
+            return name;
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
 function splitConversation(chatHistory) {
   const sorted = [...chatHistory].sort((a, b) => (a.Number || 0) - (b.Number || 0));
   const aiMessages = [];
@@ -142,13 +184,15 @@ async function processBatch(chatters, channel, batchNum, totalBatches) {
       });
     }
     
-    // Human conversations (no cards for human agents)
+    // Human conversations (extract agent name from @@pattern or intro text)
     if (humanMessages.length > 0) {
       const sourceId = `${chatter.SenderID}-human`;
+      const agentName = extractAgentName(humanMessages);
       convBatch.push({
         source_id: sourceId,
         source_type: 'human',
         channel,
+        agent_name: agentName,
         started_at: humanMessages[0]?.DateStamp || new Date().toISOString(),
         message_count: humanMessages.length,
         _messages: humanMessages.filter(m => m.MessageText?.trim()).map(m => ({

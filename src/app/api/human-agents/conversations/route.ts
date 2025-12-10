@@ -1,27 +1,58 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '../../../../lib/supabase';
 
+async function fetchAllConversations(sourceType: string, requestedLimit: number) {
+  const BATCH_SIZE = 1000;
+  const allData: any[] = [];
+  let offset = 0;
+  let hasMore = true;
+  let totalCount = 0;
+  
+  while (hasMore && allData.length < requestedLimit) {
+    const batchLimit = Math.min(BATCH_SIZE, requestedLimit - allData.length);
+    const { data, error, count } = await supabase
+      .from('conversations')
+      .select('*', { count: 'exact' })
+      .eq('source_type', sourceType)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + batchLimit - 1);
+    
+    if (error) {
+      console.error('Batch fetch error:', error);
+      break;
+    }
+    
+    if (count && totalCount === 0) {
+      totalCount = count;
+    }
+    
+    if (data && data.length > 0) {
+      allData.push(...data);
+      offset += data.length;
+      hasMore = data.length === batchLimit && allData.length < requestedLimit;
+    } else {
+      hasMore = false;
+    }
+  }
+  
+  return { data: allData, count: totalCount };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '1000');
+    const limit = parseInt(searchParams.get('limit') || '10000');
     const offset = parseInt(searchParams.get('offset') || '0');
     
     console.log(`🔍 Fetching human agent conversations from Supabase (limit: ${limit}, offset: ${offset})...`);
 
-    const { data, error, count } = await supabase
-      .from('conversations')
-      .select('*', { count: 'exact' })
-      .eq('source_type', 'human')
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+    const { data, count } = await fetchAllConversations('human', limit);
 
-    if (error) {
-      console.error('Supabase Error:', error);
+    if (!data) {
       return NextResponse.json({
         conversations: [],
         total: 0,
-        error: error.message
+        error: 'Failed to fetch conversations'
       });
     }
 
