@@ -17,7 +17,9 @@ import {
   RefreshCw,
   ThumbsUp,
   ThumbsDown,
-  Minus
+  Minus,
+  Globe,
+  Smartphone
 } from 'lucide-react';
 
 export interface HumanAgentConversationData {
@@ -45,6 +47,7 @@ export interface HumanAgentConversationData {
   sentiment_impact: string;
   emotions: string[];
   timestamp?: string;
+  channel?: string;
 }
 
 export interface HumanAgentFilterState {
@@ -549,7 +552,7 @@ const HumanAgentConversations = () => {
                   <thead>
                     <tr className="border-b border-gray-700">
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Agent</th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Customer</th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Channel</th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Quality</th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Empathy</th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Sentiment</th>
@@ -579,7 +582,14 @@ const HumanAgentConversations = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-gray-300">{conv.customer_name}</p>
+                          <span className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${
+                            conv.channel === 'web' 
+                              ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' 
+                              : 'bg-violet-500/10 text-violet-400 border border-violet-500/20'
+                          }`}>
+                            {conv.channel === 'web' ? <Globe className="h-3 w-3" /> : <Smartphone className="h-3 w-3" />}
+                            <span className="capitalize">{conv.channel || 'unknown'}</span>
+                          </span>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-2">

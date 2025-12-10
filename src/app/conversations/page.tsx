@@ -21,7 +21,9 @@ import {
   TrendingUp,
   Bot,
   RefreshCw,
-  Database
+  Database,
+  Globe,
+  Smartphone
 } from 'lucide-react';
 
 export interface ConversationData {
@@ -42,12 +44,14 @@ export interface ConversationData {
   topics?: string[];
   subCategories?: string[];
   summary?: string;
+  channel?: string;
 }
 
 export interface FilterState {
   sentiment: string[];
   qualityScore: number[];
   status: string[];
+  channel: string[];
   dateRange: {
     from: Date | null;
     to: Date | null;
@@ -67,6 +71,7 @@ const Conversations = () => {
     sentiment: [],
     qualityScore: [0, 100],
     status: [],
+    channel: [],
     dateRange: {
       from: null,
       to: null,
@@ -141,6 +146,12 @@ const Conversations = () => {
         }
       }
 
+      if (activeFilters.channel.length > 0) {
+        if (!activeFilters.channel.includes(conv.channel || 'unknown')) {
+          return false;
+        }
+      }
+
       if (
         conv.qualityScore < activeFilters.qualityScore[0] ||
         conv.qualityScore > activeFilters.qualityScore[1]
@@ -166,6 +177,10 @@ const Conversations = () => {
 
   const uniqueStatuses = React.useMemo(() => {
     return [...new Set(conversations.map(conv => conv.status))].sort();
+  }, [conversations]);
+
+  const uniqueChannels = React.useMemo(() => {
+    return [...new Set(conversations.map(conv => conv.channel || 'unknown'))].sort();
   }, [conversations]);
 
   const getSentimentIcon = (sentiment: string) => {
@@ -428,6 +443,43 @@ const Conversations = () => {
               </div>
             </div>
 
+            {/* Channel Filter */}
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
+              <div className="flex items-center mb-4">
+                <Globe className="h-5 w-5 text-cyan-400 mr-2" />
+                <h3 className="text-lg font-semibold text-white">Channel</h3>
+              </div>
+              <div className="space-y-2">
+                {uniqueChannels.map((channel) => (
+                  <label key={channel} className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={activeFilters.channel.includes(channel)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setActiveFilters(prev => ({
+                            ...prev,
+                            channel: [...prev.channel, channel]
+                          }));
+                        } else {
+                          setActiveFilters(prev => ({
+                            ...prev,
+                            channel: prev.channel.filter(c => c !== channel)
+                          }));
+                        }
+                        setCurrentPage(1);
+                      }}
+                      className="rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500"
+                    />
+                    <span className="flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-medium bg-gray-700 text-gray-300">
+                      {channel === 'web' ? <Globe className="h-3 w-3" /> : <Smartphone className="h-3 w-3" />}
+                      <span className="capitalize">{channel}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
             {/* Quality Score Filter */}
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
               <div className="flex items-center mb-4">
@@ -474,6 +526,7 @@ const Conversations = () => {
 
             {/* Clear Filters */}
             {(activeFilters.sentiment.length > 0 || activeFilters.status.length > 0 || 
+              activeFilters.channel.length > 0 ||
               activeFilters.qualityScore[0] !== 0 || activeFilters.qualityScore[1] !== 100) && (
               <button
                 onClick={() => {
@@ -481,6 +534,7 @@ const Conversations = () => {
                     sentiment: [],
                     qualityScore: [0, 100],
                     status: [],
+                    channel: [],
                     dateRange: { from: null, to: null },
                     topics: [],
                   });
@@ -545,10 +599,10 @@ const Conversations = () => {
                   <thead>
                     <tr className="border-b border-gray-700">
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Conversation</th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Channel</th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Quality</th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Sentiment</th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Status</th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Intent</th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Messages</th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Gaps</th>
                     </tr>
@@ -574,6 +628,16 @@ const Conversations = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4">
+                          <span className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${
+                            conv.channel === 'web' 
+                              ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' 
+                              : 'bg-violet-500/10 text-violet-400 border border-violet-500/20'
+                          }`}>
+                            {conv.channel === 'web' ? <Globe className="h-3 w-3" /> : <Smartphone className="h-3 w-3" />}
+                            <span className="capitalize">{conv.channel || 'unknown'}</span>
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
                           <div className="flex items-center space-x-2">
                             <Star className="h-4 w-4 text-amber-400" />
                             <span className={`font-bold ${getQualityColor(conv.qualityScore)}`}>
@@ -591,14 +655,6 @@ const Conversations = () => {
                           <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(conv.status)}`}>
                             {conv.status}
                           </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-2">
-                            <Target className="h-4 w-4 text-violet-400" />
-                            <span className="text-gray-300 text-sm truncate max-w-[100px]">
-                              {conv.intent || 'N/A'}
-                            </span>
-                          </div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-2">

@@ -104,7 +104,8 @@ export async function GET(request: NextRequest) {
         trends: row.trends || [],
         topics: row.topics || [],
         subCategories: row.sub_categories || [],
-        summary: row.summary || ''
+        summary: row.summary || '',
+        channel: row.channel || 'unknown'
       };
     });
 

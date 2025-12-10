@@ -29,7 +29,7 @@ async function getHumanAgentConversation(conversationId: string) {
           .from('messages')
           .select('*')
           .eq('conversation_id', conv.id)
-          .order('timestamp', { ascending: true });
+          .order('sequence_number', { ascending: true });
 
         if (dbMessages && !msgError && dbMessages.length > 0) {
           console.log(`   ✅ Found ${dbMessages.length} messages in Supabase`);
@@ -247,7 +247,7 @@ export async function GET(request: NextRequest) {
         .from('messages')
         .select('*')
         .eq('conversation_id', id)
-        .order('timestamp', { ascending: true });
+        .order('sequence_number', { ascending: true });
 
       if (error) {
         console.error('Supabase Error:', error);
@@ -282,7 +282,9 @@ export async function GET(request: NextRequest) {
         TimeSent: msg.timestamp,
         timestamp: msg.timestamp,
         sentiment: msg.sentiment,
-        intent: msg.intent_detected
+        intent: msg.intent_detected,
+        cardsList: msg.cards_list,
+        isCardSelection: msg.is_card_selection
       }));
 
       return NextResponse.json({

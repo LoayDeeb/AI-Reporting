@@ -22,7 +22,9 @@ import {
   Globe,
   CheckCircle,
   Loader,
-  Database
+  Database,
+  LayoutGrid,
+  MousePointerClick
 } from 'lucide-react';
 
 interface ConversationDetailsProps {
@@ -324,11 +326,45 @@ const ConversationDetails = ({ params }: ConversationDetailsProps) => {
                         <div className={`rounded-xl p-4 ${
                           isBot 
                             ? 'bg-gray-700/50 text-gray-200' 
-                            : 'bg-blue-600/20 text-blue-100 border border-blue-500/30'
+                            : msg.isCardSelection
+                              ? 'bg-violet-600/20 text-violet-100 border border-violet-500/30'
+                              : 'bg-blue-600/20 text-blue-100 border border-blue-500/30'
                         }`}>
-                          <p className="text-sm leading-relaxed">
-                            {msg.MessageText || msg.text || msg.content || 'No message content'}
-                          </p>
+                          {msg.isCardSelection && (
+                            <div className="flex items-center space-x-1 text-violet-400 text-xs mb-2">
+                              <MousePointerClick className="h-3 w-3" />
+                              <span>Card Selected</span>
+                            </div>
+                          )}
+                          {(msg.MessageText || msg.text || msg.content || !(msg.cardsList && msg.cardsList.length > 0)) && (
+                            <p className="text-sm leading-relaxed">
+                              {msg.MessageText || msg.text || msg.content || 'No message content'}
+                            </p>
+                          )}
+                          {msg.cardsList && msg.cardsList.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-gray-600/50">
+                              <div className="flex items-center space-x-1 text-gray-400 text-xs mb-2">
+                                <LayoutGrid className="h-3 w-3" />
+                                <span>Options presented ({msg.cardsList.length})</span>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {msg.cardsList.slice(0, 6).map((card: any, cardIdx: number) => (
+                                  <span 
+                                    key={cardIdx}
+                                    className="px-2 py-1 bg-gray-600/50 rounded text-xs text-gray-300 truncate max-w-[150px]"
+                                    title={card.title}
+                                  >
+                                    {card.title?.replace('VMENU:', '').replace('CAROUSEL:', '')}
+                                  </span>
+                                ))}
+                                {msg.cardsList.length > 6 && (
+                                  <span className="px-2 py-1 text-xs text-gray-500">
+                                    +{msg.cardsList.length - 6} more
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

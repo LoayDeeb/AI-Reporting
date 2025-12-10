@@ -78,7 +78,8 @@ export async function GET(request: NextRequest) {
         root_causes: row.root_causes || [],
         churn_signals: row.churn_signals || [],
         emotions: row.emotions || [],
-        summary: row.summary || ''
+        summary: row.summary || '',
+        channel: row.channel || 'unknown'
       };
     });
 
