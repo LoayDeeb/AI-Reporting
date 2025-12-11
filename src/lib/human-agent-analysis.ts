@@ -119,7 +119,7 @@ Identify 1-3 specific root causes (not symptoms). Focus on:
 Return only the root causes as a JSON array of strings, or empty array if no issues found.`;
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4.1',
+        model: 'gpt-5.1',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.3,
         max_tokens: 200,
@@ -165,7 +165,7 @@ Look for:
 Return knowledge gaps as JSON array of strings (max 3), or empty array if none found.`;
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4.1',
+        model: 'gpt-5.1',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.3,
         max_tokens: 150,
@@ -207,7 +207,7 @@ Rate script adherence (0-100) based on:
 Return only a number between 0-100.`;
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4.1',
+        model: 'gpt-5.1',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.2,
         max_tokens: 50,
@@ -243,7 +243,7 @@ Consider:
 Return only a number between 0-100 (0=no risk, 100=high risk).`;
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4.1',
+        model: 'gpt-5.1',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.2,
         max_tokens: 50,
@@ -277,7 +277,7 @@ Determine:
 Return only "true" if there's a mismatch (intent not satisfied), "false" if intent was satisfied.`;
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4.1',
+        model: 'gpt-5.1',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.2,
         max_tokens: 50,
@@ -312,7 +312,7 @@ Look for:
 Return churn signals as JSON array of strings (max 3), or empty array if none found.`;
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4.1',
+        model: 'gpt-5.1',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.3,
         max_tokens: 100,
@@ -350,7 +350,7 @@ Identify 1-3 dominant emotions from:
 Return emotions as JSON array of strings, or empty array if neutral.`;
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4.1',
+        model: 'gpt-5.1',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.3,
         max_tokens: 100,
@@ -392,7 +392,7 @@ High effort indicators:
 Return only a number between 0-100 (0=low effort, 100=high effort).`;
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4.1',
+        model: 'gpt-5.1',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.2,
         max_tokens: 50,
@@ -428,7 +428,7 @@ Focus on actionable improvements:
 Return coaching opportunities as JSON array of strings (max 3), or empty array if performance was excellent.`;
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4.1',
+        model: 'gpt-5.1',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.3,
         max_tokens: 150,
@@ -467,7 +467,7 @@ Evaluate the agent's sentiment impact:
 Return one of: "Positive Impact", "Neutral Impact", "Negative Impact", "Mixed Impact"`;
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4.1',
+        model: 'gpt-5.1',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.2,
         max_tokens: 50,
@@ -506,7 +506,7 @@ EMPATHY SCORE (0-100): Understanding, compassion, emotional connection
 Return only two numbers separated by comma: quality,empathy`;
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4.1',
+        model: 'gpt-5.1',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.2,
         max_tokens: 50,
@@ -578,7 +578,7 @@ Analyze:
 - Emotions: Customer emotional states (max 3)`;
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4.1',
+        model: 'gpt-5.1',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.2,
         max_tokens: 800,
@@ -1234,7 +1234,7 @@ Provide:
 Keep responses concise and actionable.`;
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4.1',
+        model: 'gpt-5.1',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.7,
         max_tokens: 500,

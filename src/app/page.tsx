@@ -98,6 +98,8 @@ export default function Dashboard() {
   const [senderAnalysis, setSenderAnalysis] = useState<AnalyticsData | null>(null);
   const [useModernDesign, setUseModernDesign] = useState(true);
   const [demoMode, setDemoMode] = useState(true);
+  const [selectedChannel, setSelectedChannel] = useState<string>('all');
+  const [availableChannels, setAvailableChannels] = useState<string[]>(['app', 'web']);
 
   const STATIC_AI_INSIGHTS = {
     insights: "Analysis of 5,000 conversations reveals that while the chatbot achieves a high rate of neutral sentiment (94%) and maintains an average quality score of 61.57%, significant performance gaps persist. The most frequent issues include a lack of escalation options for unresolved issues (8% of all recommendations), insufficient follow-up prompts to gather user-specific details (noted in over 3% of cases), and a consistent absence of detailed troubleshooting steps for account activation and balance problems (knowledge gaps cited in 7% and 6% of cases, respectively). Trends indicate that although initial greetings and menu presentations are effective (noted in 2% of conversations), the bot often fails to engage in detailed troubleshooting or problem-solving, resulting in repetitive user attempts (up to 28 cases) and frequent requests for human escalation (over 24 cases). The bot's reliance on static menu navigation without dynamic, personalized follow-up leads to unresolved issues, user frustration, and repeated escalation requests. Additionally, there are persistent knowledge gaps regarding step-by-step guidance for account activation, points redemption, and product usage, as well as a lack of clear escalation pathways and estimated resolution times.",
@@ -122,13 +124,18 @@ export default function Dashboard() {
     ]
   };
 
-  const loadData = async (type: 'basic' | 'sample' | 'full', fastMode = false, limit = 0, optimization: 'standard' | 'aggressive' | 'extreme' = 'aggressive') => {
+  const loadData = async (type: 'basic' | 'sample' | 'full', fastMode = false, limit = 0, optimization: 'standard' | 'aggressive' | 'extreme' = 'aggressive', channel?: string) => {
     setLoading(true);
     try {
       let url = `/api/analyze?action=${type}`;
       if (fastMode) url += `&fastMode=true`;
       if (limit > 0) url += `&sampleSize=${limit}`;
       if (fastMode && optimization) url += `&optimization=${optimization}`;
+      // Add channel filter
+      const channelToUse = channel || selectedChannel;
+      if (channelToUse && channelToUse !== 'all') {
+        url += `&channel=${channelToUse}`;
+      }
       
       const response = await fetch(url);
       const result = await response.json();
@@ -136,6 +143,11 @@ export default function Dashboard() {
       // Inject static AI insights if performing full analysis
       if (type === 'full') {
         result.aiInsights = STATIC_AI_INSIGHTS;
+      }
+      
+      // Update available channels if returned
+      if (result.availableChannels) {
+        setAvailableChannels(result.availableChannels);
       }
       
       setData(result);
@@ -285,6 +297,13 @@ export default function Dashboard() {
     }
   };
 
+  // Handle channel change - reload data with new channel filter
+  const handleChannelChange = (channel: string) => {
+    setSelectedChannel(channel);
+    // Reload data with the new channel filter
+    loadData('full', true, 0, 'aggressive', channel);
+  };
+
   // If using modern design, render the new dashboard
   if (useModernDesign) {
     return (
@@ -302,6 +321,9 @@ export default function Dashboard() {
             onConversationAnalysis={handleConversationAnalysis}
             onParallelProcessingComplete={handleParallelProcessingComplete}
             onZainjoAnalysis={handleZainjoAnalysis}
+            selectedChannel={selectedChannel}
+            availableChannels={availableChannels}
+            onChannelChange={handleChannelChange}
           />
         </div>
       </div>

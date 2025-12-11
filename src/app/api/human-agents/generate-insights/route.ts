@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     // 3. Call OpenAI
     const openai = getOpenAIClient();
     const response = await openai.chat.completions.create({
-      model: "gpt-4.1",
+      model: "gpt-5.1",
       messages: [
         { role: "system", content: "You are a Senior Call Center QA Analyst." },
         { role: "user", content: prompt }

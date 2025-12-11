@@ -44,12 +44,20 @@ const TopicsChart = ({ data }: TopicsChartProps) => {
     );
   }
 
-  // Convert data format
-  const formattedData = data.map(item => ({
-    name: item.topic,
-    value: item.count,
-    fullName: item.topic.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
-  }));
+  // Convert data format - handle both English and Arabic topics
+  const formattedData = data.map(item => {
+    // Check if topic contains Arabic characters
+    const isArabic = /[\u0600-\u06FF]/.test(item.topic);
+    const formattedName = isArabic 
+      ? item.topic // Keep Arabic text as-is
+      : item.topic.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+    
+    return {
+      name: item.topic,
+      value: item.count,
+      fullName: formattedName
+    };
+  });
 
   const colors = ['#22D3EE', '#818CF8', '#F59E0B', '#EF4444', '#10B981', '#8B5CF6'];
 

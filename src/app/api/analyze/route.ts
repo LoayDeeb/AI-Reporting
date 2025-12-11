@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const action = searchParams.get('action');
+    const channel = searchParams.get('channel') || undefined; // 'app', 'web', 'all', or undefined
     
     // Use Supabase processor for fetching analytics
     const dbProcessor = new SupabaseDataProcessor();
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
         // Fallback to basic view but using DB data (simulating full analysis result)
       case 'basic':
       default:
-        console.log('🔍 Loading conversation analysis from Supabase...');
+        console.log(`🔍 Loading conversation analysis from Supabase (channel: ${channel || 'all'})...`);
         
         // Fetch AI analytics from Supabase
         // Use sampleSize if provided, otherwise default to 10000
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
           // The SupabaseDataProcessor.getAnalytics method already aggregates insights from the fetched data
         }
 
-        const { analytics, aiInsights } = await dbProcessor.getAnalytics('ai', limit);
+        const { analytics, aiInsights, availableChannels } = await dbProcessor.getAnalytics('ai', limit, channel);
         
         if (analytics.length === 0) {
            // Fallback for demo mode or empty state
@@ -48,7 +49,8 @@ export async function GET(request: NextRequest) {
             totalConversations: 0,
             metrics: null,
             fromCache: false,
-            message: 'No data found in database.'
+            message: 'No data found in database.',
+            availableChannels: availableChannels || ['app', 'web']
            });
         }
 
@@ -65,7 +67,9 @@ export async function GET(request: NextRequest) {
           analyzedConversations: analytics.length,
           analysisType: 'full_ai',
           fromCache: true,
-          message: 'Data loaded successfully from Supabase'
+          message: 'Data loaded successfully from Supabase',
+          currentChannel: channel || 'all',
+          availableChannels: availableChannels || ['app', 'web']
         });
         
       case 'regenerate-insights':
@@ -268,6 +272,26 @@ function calculateDashboardMetrics(analytics: import('@/types/conversation').Con
     }
   ];
 
+  // Count transfer reasons
+  const transferReasonCounts: { [key: string]: number } = {};
+  let transferredCount = 0;
+  analytics.forEach(a => {
+    if ((a as any).wasTransferredToAgent) {
+      transferredCount++;
+      const reason = (a as any).transferReason;
+      if (reason && reason.trim()) {
+        transferReasonCounts[reason] = (transferReasonCounts[reason] || 0) + 1;
+      }
+    }
+  });
+
+  const topTransferReasons = Object.entries(transferReasonCounts)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 10)
+    .map(([reason, count]) => ({ reason, count }));
+
+  const transferRate = (transferredCount / totalConversations) * 100;
+
   return {
     totalConversations,
     avgConversationLength,
@@ -281,6 +305,8 @@ function calculateDashboardMetrics(analytics: import('@/types/conversation').Con
     topKnowledgeGaps,
     escalationRate,
     resolutionRate,
-    trendsOverTime
+    trendsOverTime,
+    topTransferReasons,
+    transferRate
   };
 } 

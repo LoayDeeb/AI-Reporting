@@ -576,7 +576,10 @@ export class DataProcessor {
       knowledgeGaps: analysis.knowledgeGaps,
       summary: analysis.summary,
       recommendations: analysis.recommendations,
-      trends: analysis.trends
+      trends: analysis.trends,
+      transferReason: analysis.transferReason,
+      wasTransferredToAgent: analysis.wasTransferredToAgent,
+      empathyScore: 0 // Default for bot conversations
     };
   }
 

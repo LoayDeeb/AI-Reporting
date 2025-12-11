@@ -6,9 +6,12 @@ export class SupabaseDataProcessor {
   /**
    * Fetch analytics from Supabase
    * This replaces loadCache()
+   * @param sourceType - 'ai' or 'human'
+   * @param limit - max number of records to fetch
+   * @param channel - optional channel filter ('app', 'web', or undefined for all)
    */
-  async getAnalytics(sourceType: 'ai' | 'human' = 'ai', limit = 5000): Promise<{ analytics: ConversationAnalytics[], aiInsights: any }> {
-    console.log(`🔍 Fetching ${sourceType} analytics from Supabase (target limit: ${limit})...`);
+  async getAnalytics(sourceType: 'ai' | 'human' = 'ai', limit = 5000, channel?: string): Promise<{ analytics: ConversationAnalytics[], aiInsights: any, availableChannels: string[] }> {
+    console.log(`🔍 Fetching ${sourceType} analytics from Supabase (limit: ${limit}, channel: ${channel || 'all'})...`);
 
     let allData: any[] = [];
     let offset = 0;
@@ -19,11 +22,18 @@ export class SupabaseDataProcessor {
       const remaining = limit - allData.length;
       const currentBatchSize = Math.min(BATCH_SIZE, remaining);
       
-      // Use range for pagination to bypass the 1000 row default limit
-      const { data, error } = await supabase
+      // Build query with optional channel filter
+      let query = supabase
         .from('conversations')
         .select('*')
-        .eq('source_type', sourceType)
+        .eq('source_type', sourceType);
+      
+      // Add channel filter if specified
+      if (channel && channel !== 'all') {
+        query = query.eq('channel', channel);
+      }
+      
+      const { data, error } = await query
         .order('created_at', { ascending: false })
         .range(offset, offset + currentBatchSize - 1);
 
@@ -31,7 +41,7 @@ export class SupabaseDataProcessor {
         console.error('Supabase Error:', error);
         // If we have some data, return what we have, otherwise return empty
         if (allData.length === 0) {
-          return { analytics: [], aiInsights: null };
+          return { analytics: [], aiInsights: null, availableChannels: [] };
         }
         break;
       }
@@ -50,6 +60,9 @@ export class SupabaseDataProcessor {
     }
 
     console.log(`✅ Fetched total ${allData.length} records from Supabase`);
+    
+    // Get available channels for the filter dropdown
+    const availableChannels = await this.getAvailableChannels(sourceType);
 
     // Map DB result to ConversationAnalytics interface
     const analytics = allData.map(row => ({
@@ -85,14 +98,40 @@ export class SupabaseDataProcessor {
       sentimentChange: row.sentiment_change,
       
       // Timestamps
-      timestamp: row.started_at
+      timestamp: row.started_at,
+      
+      // Channel info
+      channel: row.channel || 'unknown',
+      
+      // Transfer info
+      transferReason: row.transfer_reason,
+      wasTransferredToAgent: row.was_transferred_to_agent
     }));
 
     // Aggregate insights (since DB stores them per conversation mostly)
     // In a real app, we'd store platform-level insights in analytics_summary table
     const aiInsights = this.aggregateInsights(analytics);
 
-    return { analytics, aiInsights };
+    return { analytics, aiInsights, availableChannels };
+  }
+  
+  /**
+   * Get list of available channels for filtering
+   */
+  async getAvailableChannels(sourceType: 'ai' | 'human' = 'ai'): Promise<string[]> {
+    const { data, error } = await supabase
+      .from('conversations')
+      .select('channel')
+      .eq('source_type', sourceType)
+      .not('channel', 'is', null);
+    
+    if (error || !data) {
+      return ['app', 'web']; // Default channels
+    }
+    
+    // Get unique channels
+    const channels = [...new Set(data.map(row => row.channel).filter(Boolean))];
+    return channels.length > 0 ? channels : ['app', 'web'];
   }
 
   private aggregateInsights(analytics: any[]) {

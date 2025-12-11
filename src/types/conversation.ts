@@ -56,6 +56,9 @@ export interface ConversationAnalytics {
   summary: string;
   recommendations: string[];
   trends: string[];
+  transferReason?: string; // Reason why user was transferred to human agent
+  wasTransferredToAgent?: boolean; // Whether user was successfully transferred
+  channel?: string; // Channel: 'app', 'web', or 'unknown'
   
   // Optional fields for Human Agent Analysis
   agentName?: string;
@@ -132,4 +135,7 @@ export interface DashboardMetrics {
     sentimentScore: number;
     volume: number;
   }>;
+  // Transfer to agent metrics
+  topTransferReasons?: Array<{ reason: string; count: number }>;
+  transferRate?: number;
 } 

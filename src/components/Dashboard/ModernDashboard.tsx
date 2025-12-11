@@ -18,7 +18,9 @@ import {
   MessageSquare,
   TrendingUp,
   Activity,
-  Zap
+  Zap,
+  UserPlus,
+  ArrowRightLeft
 } from 'lucide-react';
 
 interface PlatformOverallScore {
@@ -55,6 +57,8 @@ interface Metrics {
     sentimentScore: number;
     volume: number;
   }>;
+  topTransferReasons?: Array<{ reason: string; count: number }>;
+  transferRate?: number;
 }
 
 interface AIInsights {
@@ -71,6 +75,8 @@ interface DashboardData {
   fastMode?: boolean;
   sampleSize?: number;
   optimizationLevel?: string;
+  currentChannel?: string;
+  availableChannels?: string[];
 }
 
 interface ModernDashboardProps {
@@ -80,6 +86,9 @@ interface ModernDashboardProps {
   onConversationAnalysis?: () => void;
   onParallelProcessingComplete?: () => void;
   onZainjoAnalysis?: () => void;
+  selectedChannel?: string;
+  availableChannels?: string[];
+  onChannelChange?: (channel: string) => void;
 }
 
 const ModernDashboard = ({ 
@@ -88,7 +97,10 @@ const ModernDashboard = ({
   onFullAnalysis, 
   onConversationAnalysis,
   onParallelProcessingComplete,
-  onZainjoAnalysis
+  onZainjoAnalysis,
+  selectedChannel = 'all',
+  availableChannels = ['app', 'web'],
+  onChannelChange
 }: ModernDashboardProps) => {
   const metrics = data.metrics;
   const platformScore = metrics?.platformScore;
@@ -101,6 +113,8 @@ const ModernDashboard = ({
   const escalationRate = metrics?.escalationRate || 0;
   const resolutionRate = metrics?.resolutionRate || 0;
   const knowledgeGaps = metrics?.topKnowledgeGaps?.length || 0;
+  const transferRate = metrics?.transferRate || 0;
+  const topTransferReasons = metrics?.topTransferReasons || [];
 
   // Format response time
   const formatResponseTime = (time: number) => {
@@ -291,6 +305,45 @@ const ModernDashboard = ({
           onConversationAnalysis={onConversationAnalysis}
         />
 
+        {/* Channel Filter */}
+        <div className="mb-8 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <span className="text-gray-400 font-medium">Filter by Channel:</span>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => onChannelChange?.('all')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                  selectedChannel === 'all'
+                    ? 'bg-cyan-500 text-white'
+                    : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                }`}
+              >
+                All Channels
+              </button>
+              {availableChannels.map((channel) => (
+                <button
+                  key={channel}
+                  onClick={() => onChannelChange?.(channel)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 capitalize ${
+                    selectedChannel === channel
+                      ? channel === 'app' 
+                        ? 'bg-purple-500 text-white' 
+                        : 'bg-blue-500 text-white'
+                      : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                  }`}
+                >
+                  {channel === 'app' ? '📱 App' : channel === 'web' ? '🌐 Web' : channel}
+                </button>
+              ))}
+            </div>
+          </div>
+          {selectedChannel !== 'all' && (
+            <div className="text-sm text-gray-400">
+              Showing <span className="text-cyan-400 font-semibold capitalize">{selectedChannel}</span> conversations only
+            </div>
+          )}
+        </div>
+
         {/* Primary Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <MetricCard
@@ -341,6 +394,61 @@ const ModernDashboard = ({
           />
         </div>
 
+        {/* Transfer Rate Metric - show if we have transfer data */}
+        {transferRate > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <MetricCard
+              icon={<ArrowRightLeft className="h-6 w-6" />}
+              title="Transfer to Agent Rate"
+              value={`${transferRate.toFixed(1)}%`}
+              color="amber"
+              subtitle="Conversations transferred to human agents"
+            />
+            <MetricCard
+              icon={<UserPlus className="h-6 w-6" />}
+              title="Top Transfer Reason"
+              value={topTransferReasons.length > 0 ? topTransferReasons[0].reason.substring(0, 30) + '...' : 'N/A'}
+              color="orange"
+              subtitle={topTransferReasons.length > 0 ? `${topTransferReasons[0].count} occurrences` : 'No transfers recorded'}
+            />
+          </div>
+        )}
+
+        {/* Transfer Reasons Section */}
+        {topTransferReasons.length > 0 && (
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 mb-8 border border-amber-500/20">
+            <div className="flex items-center mb-6">
+              <div className="p-2 bg-amber-500/10 rounded-lg border border-amber-500/20 mr-3">
+                <ArrowRightLeft className="text-amber-400 h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-white">Reasons for Transfer to Human Agent</h3>
+                <p className="text-gray-400 text-sm">Why users were transferred from bot to human agents</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {topTransferReasons.slice(0, 6).map((item, index) => (
+                <div 
+                  key={index} 
+                  className="p-4 bg-gradient-to-r from-amber-500/5 to-orange-500/5 rounded-lg border border-amber-500/10 hover:border-amber-500/30 transition-all duration-300"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="text-gray-300 text-sm leading-relaxed">{item.reason}</p>
+                    </div>
+                    <div className="ml-3 flex-shrink-0">
+                      <span className="px-2 py-1 bg-amber-500/20 text-amber-400 rounded-full text-xs font-semibold">
+                        {item.count}x
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <SentimentChart data={metrics?.sentimentDistribution} />
@@ -379,7 +487,7 @@ const ModernDashboard = ({
 
         <div className="flex gap-4 flex-wrap">
           <button
-            onClick={refreshInsights}
+            onClick={() => refreshInsights()}
             disabled={loading || isProcessing}
             className="px-6 py-3 bg-violet-500/20 text-violet-300 rounded-xl border border-violet-500/30 hover:bg-violet-500/30 hover:border-violet-500/50 transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
           >
