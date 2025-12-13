@@ -19,7 +19,8 @@ import {
   Minus,
   User,
   CheckCircle,
-  Sparkles
+  Sparkles,
+  ArrowRightLeft
 } from 'lucide-react';
 import MetricCard from '@/components/ui/metric-card';
 import Modal from '@/components/ui/modal';
@@ -53,6 +54,8 @@ interface HumanAgentConversation {
     sentiment_change: string;
   };
   emotions: string[];
+  was_transferred_to_agent: boolean;
+  transfer_reason: string;
 }
 
 interface HumanAgentAnalytics {
@@ -248,6 +251,32 @@ const HumanAgentDashboard: React.FC = () => {
     };
   };
 
+  const getTransferMetrics = () => {
+    if (!data?.analytics) return { 
+      transferRate: 0, 
+      transferredCount: 0, 
+      topTransferReasons: [] as Array<{ reason: string; count: number }> 
+    };
+    
+    const transferred = data.analytics.filter(conv => conv.was_transferred_to_agent);
+    const transferredCount = transferred.length;
+    const transferRate = Math.round((transferredCount / data.analytics.length) * 100);
+    
+    const reasonCounts = transferred.reduce((acc, conv) => {
+      if (conv.transfer_reason && conv.transfer_reason.trim()) {
+        acc[conv.transfer_reason] = (acc[conv.transfer_reason] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const topTransferReasons = Object.entries(reasonCounts)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 6)
+      .map(([reason, count]) => ({ reason, count }));
+    
+    return { transferRate, transferredCount, topTransferReasons };
+  };
+
   const getTopKnowledgeGaps = () => {
     if (!data?.analytics) return [];
     
@@ -431,6 +460,7 @@ const HumanAgentDashboard: React.FC = () => {
   const knowledgeGaps = getTopKnowledgeGaps();
   const coachingOpportunities = getTopCoachingOpportunities();
   const overallScore = getOverallScore();
+  const transferMetrics = getTransferMetrics();
 
   const getGradeColor = (grade: string) => {
     switch (grade) {
@@ -761,6 +791,44 @@ const HumanAgentDashboard: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Transfer to Human Agent Section */}
+        {transferMetrics.transferredCount > 0 && (
+          <div className="bg-[var(--surface-card)] rounded-[var(--radius-xl)] p-6 mb-8 border border-[var(--border-default)]">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-2 bg-amber-500/10 rounded-[var(--radius-md)] border border-amber-500/20">
+                <ArrowRightLeft className="text-amber-400 h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)]">Transfer to Human Agent</h3>
+                <p className="text-[var(--text-muted)] text-sm">
+                  {transferMetrics.transferredCount} conversations ({transferMetrics.transferRate}%) were transferred from bot to human agent
+                </p>
+              </div>
+            </div>
+            
+            {transferMetrics.topTransferReasons.length > 0 && (
+              <>
+                <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-3">Top Transfer Reasons</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {transferMetrics.topTransferReasons.map((item, index) => (
+                    <div 
+                      key={index} 
+                      className="p-3 bg-[var(--surface-elevated)] rounded-[var(--radius-lg)] border border-[var(--border-muted)] hover:border-amber-500/30 transition-colors duration-200"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-[var(--text-secondary)] text-sm leading-relaxed flex-1">{item.reason}</p>
+                        <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded-full text-xs font-medium">
+                          {item.count}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {/* AI Insights Section */}
         {data?.aiInsights && (

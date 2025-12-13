@@ -16,8 +16,6 @@ import {
   Brain,
   MessageSquare,
   Zap,
-  UserPlus,
-  ArrowRightLeft,
   BarChart3,
   Sparkles,
   Database
@@ -57,8 +55,7 @@ interface Metrics {
     sentimentScore: number;
     volume: number;
   }>;
-  topTransferReasons?: Array<{ reason: string; count: number }>;
-  transferRate?: number;
+
 }
 
 interface AIInsights {
@@ -130,8 +127,6 @@ const ModernDashboard = ({
   const escalationRate = metrics?.escalationRate || 0;
   const resolutionRate = metrics?.resolutionRate || 0;
   const knowledgeGaps = metrics?.topKnowledgeGaps?.length || 0;
-  const transferRate = metrics?.transferRate || 0;
-  const topTransferReasons = metrics?.topTransferReasons || [];
 
   // Format response time
   const formatResponseTime = (time: number) => {
@@ -448,56 +443,7 @@ const ModernDashboard = ({
             variant="neutral"
             subtitle="Areas for improvement"
           />
-          {transferRate > 0 && (
-            <>
-              <MetricCard
-                icon={<ArrowRightLeft className="h-5 w-5" />}
-                title="Transfer Rate"
-                value={`${transferRate.toFixed(1)}%`}
-                variant="warning"
-                subtitle="To human agents"
-              />
-              <MetricCard
-                icon={<UserPlus className="h-5 w-5" />}
-                title="Top Transfer Reason"
-                value={topTransferReasons.length > 0 ? topTransferReasons[0].reason.substring(0, 20) + '...' : 'N/A'}
-                variant="warning"
-                subtitle={topTransferReasons.length > 0 ? `${topTransferReasons[0].count} occurrences` : 'None'}
-              />
-            </>
-          )}
         </div>
-
-        {/* Transfer Reasons Section */}
-        {topTransferReasons.length > 0 && (
-          <div className="bg-[var(--surface-card)] rounded-[var(--radius-xl)] p-6 mb-8 border border-[var(--border-default)]">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="p-2 bg-amber-500/10 rounded-[var(--radius-md)] border border-amber-500/20">
-                <ArrowRightLeft className="text-amber-400 h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-[var(--text-primary)]">Transfer Reasons</h3>
-                <p className="text-[var(--text-muted)] text-sm">Why users were transferred to human agents</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {topTransferReasons.slice(0, 6).map((item, index) => (
-                <div 
-                  key={index} 
-                  className="p-3 bg-[var(--surface-elevated)] rounded-[var(--radius-lg)] border border-[var(--border-muted)] hover:border-amber-500/30 transition-colors duration-200"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-[var(--text-secondary)] text-sm leading-relaxed flex-1">{item.reason}</p>
-                    <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded-full text-xs font-medium">
-                      {item.count}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

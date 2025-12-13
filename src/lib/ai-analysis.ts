@@ -695,15 +695,6 @@ Focus on the specific topics, categories, quality issues, and knowledge gaps fou
 - 'summary' (brief summary of what happened in the conversation, max 100 words)
 - 'recommendations' (array of 2-3 specific actionable recommendations for improving this type of conversation)
 - 'trends' (array of 1-2 specific patterns or trends observed in this conversation)
-- 'transferReason' (string explaining WHY the user was transferred to a human agent - e.g., "Bot couldn't resolve billing dispute", "User requested human assistance", "Complex technical issue beyond bot capabilities". Leave empty string if no transfer occurred)
-- 'wasTransferredToAgent' (boolean - true if user was transferred to human agent, false otherwise)
-
-IMPORTANT - AGENT TRANSFER DETECTION:
-When you see these phrases, it means the user was SUCCESSFULLY transferred to a human agent:
-- English: "Please wait until I connect you to an Agent"
-- Arabic: "الرجاء الانتظار حتى أقوم بتحويلك الى موظف" or "يرجى الانتظار حتى أقوم بتوصيلك بأحد الموظفين"
-If these phrases appear, set 'wasTransferredToAgent' to true and analyze the conversation to determine WHY the transfer was needed (the 'transferReason').
-
 Be SPECIFIC in your analysis:
 - For qualityReasons: mention specific response issues like "Bot provided generic response to pricing question" or "Bot successfully guided user through account setup"
 - For knowledgeGaps: mention specific topics like "Product pricing information", "Technical support for mobile app", "Refund policy details"
@@ -711,7 +702,6 @@ Be SPECIFIC in your analysis:
 - For subCategories: be specific like "billing_issues", "technical_support", "product_information"
 - For recommendations: be actionable like "Add specific pricing information to bot knowledge base", "Improve escalation flow for technical issues"
 - For trends: identify patterns like "User required multiple attempts to get pricing info", "Bot successfully handled greeting but failed on follow-up questions"
-- For transferReason: be specific about what triggered the need for human agent - e.g., "User needed help with order refund that bot couldn't process", "Technical issue requiring human verification", "User explicitly requested to speak with a person"
 
 Handle Arabic and English text. Do not include any markdown formatting or code blocks.`
             },
@@ -771,11 +761,7 @@ Handle Arabic and English text. Do not include any markdown formatting or code b
           : [],
         trends: Array.isArray(parsed.trends)
           ? parsed.trends.slice(0, 2)
-          : [],
-        transferReason: typeof parsed.transferReason === 'string'
-          ? parsed.transferReason.substring(0, 300)
-          : '',
-        wasTransferredToAgent: parsed.wasTransferredToAgent === true
+          : []
       };
     } catch (error) {
       console.error('Ultra-fast analysis error:', error);
@@ -797,9 +783,7 @@ Handle Arabic and English text. Do not include any markdown formatting or code b
       knowledgeGaps: [],
       summary: 'Analysis failed',
       recommendations: [],
-      trends: [],
-      transferReason: '',
-      wasTransferredToAgent: false
+      trends: []
     };
   }
 

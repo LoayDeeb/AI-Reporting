@@ -44,7 +44,9 @@ export async function GET(request: NextRequest) {
         coaching_opportunities: a.coachingOpportunities || [],
         root_causes: a.rootCauses || [],
         churn_signals: a.churnSignals || [],
-        timestamp: a.timestamp
+        timestamp: a.timestamp,
+        was_transferred_to_agent: a.wasTransferredToAgent || false,
+        transfer_reason: a.transferReason || ''
       };
     });
 

@@ -156,6 +156,16 @@ const defaultHumanAgentMetrics: MetricConfig[] = [
     name: 'Emotions',
     description: 'Customer emotional states detected during the conversation',
   },
+  {
+    key: 'wasTransferredToAgent',
+    name: 'Transfer Detection',
+    description: 'Whether the conversation was transferred from a bot to a human agent. Look for phrases like "Please wait until I connect you to an Agent" or "الرجاء الانتظار حتى أقوم بتحويلك الى موظف"',
+  },
+  {
+    key: 'transferReason',
+    name: 'Transfer Reason',
+    description: 'Why the user was transferred to a human agent (e.g., "Bot couldn\'t resolve billing dispute", "User requested human assistance", "Complex technical issue beyond bot capabilities")',
+  },
 ];
 
 export default function SettingsPage() {

@@ -272,26 +272,6 @@ function calculateDashboardMetrics(analytics: import('@/types/conversation').Con
     }
   ];
 
-  // Count transfer reasons
-  const transferReasonCounts: { [key: string]: number } = {};
-  let transferredCount = 0;
-  analytics.forEach(a => {
-    if ((a as any).wasTransferredToAgent) {
-      transferredCount++;
-      const reason = (a as any).transferReason;
-      if (reason && reason.trim()) {
-        transferReasonCounts[reason] = (transferReasonCounts[reason] || 0) + 1;
-      }
-    }
-  });
-
-  const topTransferReasons = Object.entries(transferReasonCounts)
-    .sort(([,a], [,b]) => b - a)
-    .slice(0, 10)
-    .map(([reason, count]) => ({ reason, count }));
-
-  const transferRate = (transferredCount / totalConversations) * 100;
-
   return {
     totalConversations,
     avgConversationLength,
@@ -305,8 +285,6 @@ function calculateDashboardMetrics(analytics: import('@/types/conversation').Con
     topKnowledgeGaps,
     escalationRate,
     resolutionRate,
-    trendsOverTime,
-    topTransferReasons,
-    transferRate
+    trendsOverTime
   };
 } 

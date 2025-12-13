@@ -68,9 +68,11 @@ const humanAgentAnalysisSchema = {
     customerEffortScore: { type: "number" as const },
     resolutionStatus: { type: "string" as const, enum: ["resolved", "partial", "unresolved"] },
     summary: { type: "string" as const },
-    recommendations: { type: "array" as const, items: { type: "string" as const } }
+    recommendations: { type: "array" as const, items: { type: "string" as const } },
+    wasTransferredToAgent: { type: "boolean" as const },
+    transferReason: { type: "string" as const }
   },
-  required: ["sentiment", "sentimentScore", "qualityScore", "empathyScore", "rootCauses", "knowledgeGaps", "coachingOpportunities", "escalationRisk", "churnSignals", "customerEffortScore", "resolutionStatus", "summary", "recommendations"] as const,
+  required: ["sentiment", "sentimentScore", "qualityScore", "empathyScore", "rootCauses", "knowledgeGaps", "coachingOpportunities", "escalationRisk", "churnSignals", "customerEffortScore", "resolutionStatus", "summary", "recommendations", "wasTransferredToAgent", "transferReason"] as const,
   additionalProperties: false as const
 };
 
@@ -321,6 +323,8 @@ async function analyzeHumanAgentConversations(
               customer_effort_score: parsed.customerEffortScore || 50,
               resolution_status: parsed.resolutionStatus || 'unresolved',
               recommendations: parsed.recommendations || [],
+              was_transferred_to_agent: parsed.wasTransferredToAgent || false,
+              transfer_reason: parsed.transferReason || '',
             })
             .eq('id', conversation.id);
 
