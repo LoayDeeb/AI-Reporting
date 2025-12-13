@@ -317,7 +317,7 @@ const HumanAgentDashboard: React.FC = () => {
     if (!data?.analytics) return { positive: 0, neutral: 0, negative: 0 };
     
     return data.analytics.reduce((acc, conv) => {
-      const sentiment = conv.final_sentiment.toLowerCase();
+      const sentiment = (conv.final_sentiment || 'neutral').toLowerCase();
       if (sentiment === 'positive') acc.positive++;
       else if (sentiment === 'negative') acc.negative++;
       else acc.neutral++;
@@ -335,8 +335,8 @@ const HumanAgentDashboard: React.FC = () => {
     };
     
     const shifts = data.analytics.reduce((acc, conv) => {
-      const initial = conv.initial_sentiment.toLowerCase();
-      const final = conv.final_sentiment.toLowerCase();
+      const initial = (conv.initial_sentiment || 'neutral').toLowerCase();
+      const final = (conv.final_sentiment || 'neutral').toLowerCase();
       
       // Define sentiment values for comparison
       const sentimentValues = { negative: 1, neutral: 2, positive: 3 };
@@ -428,7 +428,7 @@ const HumanAgentDashboard: React.FC = () => {
     
     // Get sentiment distribution for this agent
     const agentSentimentDist = agentConversations.reduce((acc, conv) => {
-      const sentiment = conv.final_sentiment.toLowerCase();
+      const sentiment = (conv.final_sentiment || 'neutral').toLowerCase();
       if (sentiment === 'positive') acc.positive++;
       else if (sentiment === 'negative') acc.negative++;
       else acc.neutral++;
@@ -459,8 +459,8 @@ const HumanAgentDashboard: React.FC = () => {
 
     // Calculate sentiment shift for this agent
     const agentSentimentShift = agentConversations.reduce((acc, conv) => {
-      const initial = conv.initial_sentiment.toLowerCase();
-      const final = conv.final_sentiment.toLowerCase();
+      const initial = (conv.initial_sentiment || 'neutral').toLowerCase();
+      const final = (conv.final_sentiment || 'neutral').toLowerCase();
       
       const sentimentValues = { negative: 1, neutral: 2, positive: 3 };
       const initialValue = sentimentValues[initial as keyof typeof sentimentValues] || 2;
@@ -1158,11 +1158,11 @@ const HumanAgentDashboard: React.FC = () => {
                         </div>
                         <div className="flex items-center space-x-2">
                           <span className={`px-2 py-1 text-xs rounded-full ${
-                            conv.final_sentiment.toLowerCase() === 'positive' ? 'bg-emerald-500/20 text-emerald-300' :
-                            conv.final_sentiment.toLowerCase() === 'negative' ? 'bg-rose-500/20 text-rose-300' :
+                            (conv.final_sentiment || 'neutral').toLowerCase() === 'positive' ? 'bg-emerald-500/20 text-emerald-300' :
+                            (conv.final_sentiment || 'neutral').toLowerCase() === 'negative' ? 'bg-rose-500/20 text-rose-300' :
                             'bg-gray-500/20 text-gray-300'
                           }`}>
-                            {conv.final_sentiment}
+                            {conv.final_sentiment || 'Neutral'}
                           </span>
                           <span className="text-emerald-400 font-bold text-sm">{conv.quality_score}/100</span>
                         </div>

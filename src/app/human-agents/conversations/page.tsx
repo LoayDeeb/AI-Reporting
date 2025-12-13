@@ -120,10 +120,10 @@ const HumanAgentConversations = () => {
       if (debouncedSearchQuery) {
         const query = debouncedSearchQuery.toLowerCase();
         if (
-          !conv.conversation_id.toLowerCase().includes(query) &&
-          !conv.agent_name.toLowerCase().includes(query) &&
-          !conv.customer_name.toLowerCase().includes(query) &&
-          !conv.final_sentiment.toLowerCase().includes(query)
+          !conv.conversation_id?.toLowerCase().includes(query) &&
+          !conv.agent_name?.toLowerCase().includes(query) &&
+          !conv.customer_name?.toLowerCase().includes(query) &&
+          !(conv.final_sentiment || '').toLowerCase().includes(query)
         ) {
           return false;
         }
