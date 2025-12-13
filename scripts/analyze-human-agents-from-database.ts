@@ -66,6 +66,8 @@ interface HumanAgentAnalysisResult {
   resolutionStatus: string;
   summary: string;
   recommendations: string[];
+  wasTransferredToAgent: boolean;
+  transferReason: string;
 }
 
 // Parse command line arguments
@@ -114,9 +116,11 @@ const humanAgentAnalysisSchema = {
     customerEffortScore: { type: "number" as const },
     resolutionStatus: { type: "string" as const, enum: ["resolved", "partial", "unresolved"] },
     summary: { type: "string" as const },
-    recommendations: { type: "array" as const, items: { type: "string" as const } }
+    recommendations: { type: "array" as const, items: { type: "string" as const } },
+    wasTransferredToAgent: { type: "boolean" as const },
+    transferReason: { type: "string" as const }
   },
-  required: ["sentiment", "sentimentScore", "qualityScore", "empathyScore", "rootCauses", "knowledgeGaps", "coachingOpportunities", "escalationRisk", "churnSignals", "customerEffortScore", "resolutionStatus", "summary", "recommendations"] as const,
+  required: ["sentiment", "sentimentScore", "qualityScore", "empathyScore", "rootCauses", "knowledgeGaps", "coachingOpportunities", "escalationRisk", "churnSignals", "customerEffortScore", "resolutionStatus", "summary", "recommendations", "wasTransferredToAgent", "transferReason"] as const,
   additionalProperties: false as const
 };
 
@@ -144,6 +148,14 @@ ANALYSIS GUIDELINES:
 - resolutionStatus: resolved/partial/unresolved
 - summary: Brief summary (max 100 words, in English)
 - recommendations: Actionable recommendations (max 3, in English)
+- wasTransferredToAgent: true if the conversation was transferred from a bot to a human agent
+- transferReason: Why the user was transferred to a human agent (e.g., "Bot couldn't resolve billing dispute", "User requested human assistance")
+
+TRANSFER DETECTION:
+Look for these phrases that indicate transfer from bot to human agent:
+- English: "Please wait until I connect you to an Agent"
+- Arabic: "الرجاء الانتظار حتى أقوم بتحويلك الى موظف" or "يرجى الانتظار حتى أقوم بتوصيلك بأحد الموظفين"
+If these phrases appear, set wasTransferredToAgent to true and analyze why the transfer was needed.
 
 Handle Arabic and English conversations. Output all text fields in English for dashboard consistency.`;
 
@@ -186,7 +198,9 @@ Handle Arabic and English conversations. Output all text fields in English for d
       customerEffortScore: typeof parsed.customerEffortScore === 'number' ? Math.max(0, Math.min(100, parsed.customerEffortScore)) : 50,
       resolutionStatus: ['resolved', 'partial', 'unresolved'].includes(parsed.resolutionStatus) ? parsed.resolutionStatus : 'unresolved',
       summary: typeof parsed.summary === 'string' ? parsed.summary.substring(0, 300) : '',
-      recommendations: Array.isArray(parsed.recommendations) ? parsed.recommendations.slice(0, 3) : []
+      recommendations: Array.isArray(parsed.recommendations) ? parsed.recommendations.slice(0, 3) : [],
+      wasTransferredToAgent: parsed.wasTransferredToAgent === true,
+      transferReason: typeof parsed.transferReason === 'string' ? parsed.transferReason.substring(0, 300) : ''
     };
   } catch (error) {
     console.error('  ❌ Analysis error:', error);
@@ -208,7 +222,9 @@ function getDefaultAnalysis(): HumanAgentAnalysisResult {
     customerEffortScore: 50,
     resolutionStatus: 'unresolved',
     summary: 'Analysis failed',
-    recommendations: []
+    recommendations: [],
+    wasTransferredToAgent: false,
+    transferReason: ''
   };
 }
 
@@ -228,7 +244,9 @@ async function saveAnalysisToDatabase(conversationId: string, analysis: HumanAge
       churn_signals: analysis.churnSignals,
       customer_effort_score: analysis.customerEffortScore,
       resolution_status: analysis.resolutionStatus,
-      recommendations: analysis.recommendations
+      recommendations: analysis.recommendations,
+      was_transferred_to_agent: analysis.wasTransferredToAgent,
+      transfer_reason: analysis.transferReason
     })
     .eq('id', conversationId);
 
