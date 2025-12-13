@@ -44,6 +44,12 @@ export default function RootLayout({
                 >
                   Conversations
                 </Link>
+                <Link
+                  href="/settings"
+                  className="text-white hover:text-blue-400 transition-colors"
+                >
+                  Settings
+                </Link>
               </div>
             </div>
           </nav>

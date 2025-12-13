@@ -10,24 +10,20 @@ import {
   Heart, 
   TrendingUp, 
   MessageSquare, 
-  Clock, 
   Award,
   Brain,
-  Zap,
-  Activity,
   ChevronRight,
-  UserCheck,
-  Shield,
   BarChart3,
   ThumbsUp,
   ThumbsDown,
   Minus,
-  TrendingDown,
   User,
   CheckCircle,
-  X,
   Sparkles
 } from 'lucide-react';
+import MetricCard from '@/components/ui/metric-card';
+import Modal from '@/components/ui/modal';
+import ProgressBar from '@/components/ui/progress-bar';
 
 interface HumanAgentConversation {
   conversation_id: string;
@@ -75,116 +71,6 @@ interface HumanAgentAnalytics {
   timestamp: number;
   fromCache?: boolean;
 }
-
-// Metric Card Component matching main dashboard design
-const MetricCard = ({ 
-  icon, 
-  title, 
-  value, 
-  color, 
-  subtitle, 
-  trend 
-}: {
-  icon: React.ReactNode;
-  title: string;
-  value: string | number;
-  color: string;
-  subtitle?: string;
-  trend?: { value: number; isPositive: boolean };
-}) => {
-  const getColorClasses = (color: string) => {
-    const colorMap: { [key: string]: { bg: string; border: string; text: string; hover: string } } = {
-      cyan: {
-        bg: 'bg-cyan-500/10',
-        border: 'border-cyan-500/20',
-        text: 'text-cyan-400',
-        hover: 'hover:border-cyan-500/50'
-      },
-      emerald: {
-        bg: 'bg-emerald-500/10',
-        border: 'border-emerald-500/20',
-        text: 'text-emerald-400',
-        hover: 'hover:border-emerald-500/50'
-      },
-      amber: {
-        bg: 'bg-amber-500/10',
-        border: 'border-amber-500/20',
-        text: 'text-amber-400',
-        hover: 'hover:border-amber-500/50'
-      },
-      fuchsia: {
-        bg: 'bg-fuchsia-500/10',
-        border: 'border-fuchsia-500/20',
-        text: 'text-fuchsia-400',
-        hover: 'hover:border-fuchsia-500/50'
-      },
-      rose: {
-        bg: 'bg-rose-500/10',
-        border: 'border-rose-500/20',
-        text: 'text-rose-400',
-        hover: 'hover:border-rose-500/50'
-      },
-      violet: {
-        bg: 'bg-violet-500/10',
-        border: 'border-violet-500/20',
-        text: 'text-violet-400',
-        hover: 'hover:border-violet-500/50'
-      },
-      blue: {
-        bg: 'bg-blue-500/10',
-        border: 'border-blue-500/20',
-        text: 'text-blue-400',
-        hover: 'hover:border-blue-500/50'
-      }
-    };
-    
-    return colorMap[color] || colorMap.blue;
-  };
-
-  const colorClasses = getColorClasses(color);
-
-  return (
-    <div className={`relative overflow-hidden bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50 ${colorClasses.hover} transition-all duration-300 group hover:shadow-lg hover:shadow-${color}-500/10`}>
-      {/* Background Gradient */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${colorClasses.bg} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
-      
-      {/* Floating Orb */}
-      <div className={`absolute -top-4 -right-4 w-16 h-16 ${colorClasses.bg} rounded-full blur-xl opacity-0 group-hover:opacity-60 transition-opacity duration-500`}></div>
-      
-      <div className="relative z-10">
-        {/* Icon */}
-        <div className={`inline-flex items-center justify-center p-3 rounded-xl ${colorClasses.bg} ${colorClasses.border} border mb-4 group-hover:scale-110 transition-transform duration-300`}>
-          <div className={colorClasses.text}>
-            {icon}
-          </div>
-        </div>
-        
-        {/* Content */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-400 group-hover:text-gray-300 transition-colors duration-300">
-            {title}
-          </h3>
-          <div className="flex items-end justify-between">
-            <p className={`text-3xl font-bold ${colorClasses.text} group-hover:scale-105 transition-transform duration-300`}>
-              {typeof value === 'number' ? value.toLocaleString() : value}
-            </p>
-            {trend && (
-              <div className={`flex items-center space-x-1 text-xs ${trend.isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
-                <span>{trend.isPositive ? '↗' : '↘'}</span>
-                <span>{Math.abs(trend.value)}%</span>
-              </div>
-            )}
-          </div>
-          {subtitle && (
-            <p className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors duration-300">
-              {subtitle}
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const HumanAgentDashboard: React.FC = () => {
   const [data, setData] = useState<HumanAgentAnalytics | null>(null);
@@ -496,18 +382,18 @@ const HumanAgentDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white">
+      <div className="min-h-screen bg-[var(--surface-base)] text-[var(--text-primary)]">
         <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse">
-            <div className="h-48 bg-gray-800 rounded-2xl mb-8"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-32 bg-gray-800 rounded-xl"></div>
+            <div className="h-32 bg-[var(--surface-elevated)] rounded-[var(--radius-xl)] mb-8" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-32 bg-[var(--surface-elevated)] rounded-[var(--radius-xl)]" />
               ))}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-64 bg-gray-800 rounded-xl"></div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-64 bg-[var(--surface-elevated)] rounded-[var(--radius-xl)]" />
               ))}
             </div>
           </div>
@@ -518,15 +404,17 @@ const HumanAgentDashboard: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white">
+      <div className="min-h-screen bg-[var(--surface-base)] text-[var(--text-primary)]">
         <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-20">
-            <div className="text-6xl mb-6">⚠️</div>
-            <h2 className="text-3xl font-bold text-red-400 mb-4">Human Agent Dashboard Error</h2>
-            <p className="text-xl text-gray-400 mb-8">{error}</p>
+          <div className="text-center py-16">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-[var(--radius-xl)] bg-rose-500/10 border border-rose-500/20 mb-6">
+              <AlertTriangle className="h-8 w-8 text-rose-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-3">Unable to Load Data</h2>
+            <p className="text-[var(--text-secondary)] mb-6 max-w-md mx-auto">{error}</p>
             <button
               onClick={loadHumanAgentData}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-6 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+              className="bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white px-5 py-2.5 rounded-[var(--radius-lg)] font-medium transition-colors duration-200"
             >
               Try Again
             </button>
@@ -546,53 +434,47 @@ const HumanAgentDashboard: React.FC = () => {
 
   const getGradeColor = (grade: string) => {
     switch (grade) {
-      case 'A': return 'from-green-400 to-emerald-600';
-      case 'B': return 'from-blue-400 to-cyan-600';
-      case 'C': return 'from-yellow-400 to-amber-600';
-      case 'D': return 'from-orange-400 to-red-500';
-      case 'F': return 'from-red-400 to-rose-600';
-      default: return 'from-gray-400 to-gray-600';
+      case 'A': return 'bg-emerald-500';
+      case 'B': return 'bg-blue-500';
+      case 'C': return 'bg-amber-500';
+      case 'D': return 'bg-orange-500';
+      case 'F': return 'bg-rose-500';
+      default: return 'bg-slate-500';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-[var(--surface-base)] text-[var(--text-primary)]">
       <div className="container mx-auto px-4 py-8">
-        {/* Header - Matching main dashboard style */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 p-8 mb-8">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
-          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-          
-          {/* Floating Elements */}
-          <div className="absolute top-4 right-4 w-32 h-32 bg-white/5 rounded-full blur-xl"></div>
-          <div className="absolute bottom-4 left-4 w-24 h-24 bg-white/5 rounded-full blur-xl"></div>
+        {/* Header */}
+        <div className="relative overflow-hidden rounded-[var(--radius-xl)] bg-gradient-to-r from-[var(--brand-secondary)] to-rose-600 p-6 mb-8">
+          <div className="absolute inset-0 bg-black/10" />
           
           <div className="relative z-10">
-            <div className="flex justify-between items-start">
-              <div className="flex items-center space-x-4">
-                <div className="p-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/20">
-                  <Users className="h-8 w-8 text-white" />
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-6">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-white/10 backdrop-blur-md rounded-[var(--radius-lg)] border border-white/20">
+                  <Users className="h-7 w-7 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/90">
+                  <h1 className="text-2xl lg:text-3xl font-bold text-white">
                     Human Agent Analytics
                   </h1>
-                  <p className="text-white/70 mt-2 text-lg">
-                    AI-powered performance insights for human agents
+                  <p className="text-white/70 mt-1">
+                    Performance insights for support agents
                   </p>
-                  <div className="flex items-center space-x-4 mt-3">
-                    <span className="px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-white/90 text-sm border border-white/20">
-                      <User className="h-4 w-4 inline mr-1" />
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
+                    <span className="px-2.5 py-1 bg-white/15 backdrop-blur-sm rounded-full text-white/90 text-xs font-medium border border-white/20 flex items-center gap-1.5">
+                      <User className="h-3.5 w-3.5" />
                       {data?.total_agents || 0} agents
                     </span>
-                    <span className="px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-white/90 text-sm border border-white/20">
-                      <MessageSquare className="h-4 w-4 inline mr-1" />
+                    <span className="px-2.5 py-1 bg-white/15 backdrop-blur-sm rounded-full text-white/90 text-xs font-medium border border-white/20 flex items-center gap-1.5">
+                      <MessageSquare className="h-3.5 w-3.5" />
                       {data?.total_conversations || 0} conversations
                     </span>
                     {data?.fromCache && (
-                      <span className="px-3 py-1 bg-emerald-500/20 backdrop-blur-md rounded-full text-emerald-300 text-sm border border-emerald-500/30">
-                        Cached Results
+                      <span className="px-2.5 py-1 bg-emerald-500/20 rounded-full text-emerald-300 text-xs font-medium border border-emerald-500/30">
+                        Cached
                       </span>
                     )}
                   </div>
@@ -600,147 +482,99 @@ const HumanAgentDashboard: React.FC = () => {
               </div>
               
               {/* Action Buttons & Score */}
-              <div className="flex items-center space-x-4">
-                {/* View Conversations Button */}
-                <div className="group relative">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex gap-3">
                   <button
                     onClick={() => window.location.href = '/human-agents/conversations'}
-                    className="relative overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
+                    className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2.5 rounded-[var(--radius-lg)] font-medium transition-colors duration-200 border border-white/20"
                   >
-                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative flex items-center space-x-2">
-                      <MessageSquare className="h-5 w-5" />
-                      <span>View Conversations</span>
-                    </div>
-                  </button>
-                </div>
-
-                {/* Generate Insights Button */}
-                <div className="group relative">
-                  <button
-                    onClick={generateInsights}
-                    disabled={isGeneratingInsights || loading}
-                    className="relative overflow-hidden bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
-                  >
-                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative flex items-center space-x-2">
-                      {isGeneratingInsights ? (
-                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                      ) : (
-                        <Sparkles className="h-5 w-5" />
-                      )}
-                      <span>Generate Insights</span>
-                    </div>
-                  </button>
-                </div>
-
-                {/* Analyze Button */}
-                <div className="group relative">
-                  <button
-                    onClick={runFullAnalysis}
-                    disabled={isAnalyzing}
-                    className="relative overflow-hidden bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
-                  >
-                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative flex items-center space-x-2">
-                      {isAnalyzing ? (
-                        <>
-                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div>
-                          <span>Analyzing...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Brain className="h-5 w-5" />
-                          <span>Deep Analysis</span>
-                        </>
-                      )}
-                    </div>
+                    <MessageSquare className="h-4 w-4" />
+                    <span>Conversations</span>
                   </button>
                 </div>
 
                 {/* Score Display */}
-                <div className="flex items-center space-x-4 ml-4">
+                <div className="flex items-center gap-3 pl-4 border-l border-white/20">
                   <div className="text-right">
-                    <p className="text-white/60 text-sm uppercase tracking-wide">Agent Score</p>
-                    <div className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/90">
-                      {overallScore.score}
-                    </div>
-                    <p className="text-white/60 text-xs">out of 100</p>
+                    <p className="text-white/60 text-xs uppercase tracking-wide">Score</p>
+                    <p className="text-3xl font-bold text-white">{overallScore.score}</p>
                   </div>
-                  <div className={`bg-gradient-to-r ${getGradeColor(overallScore.grade)} p-3 rounded-xl shadow-lg border border-white/20`}>
-                    <div className="flex items-center space-x-2">
-                      <Award className="h-5 w-5 text-white" />
-                      <span className="text-2xl font-bold text-white">{overallScore.grade}</span>
-                    </div>
+                  <div className={`${getGradeColor(overallScore.grade)} px-3 py-2 rounded-[var(--radius-md)] flex items-center gap-1.5`}>
+                    <Award className="h-4 w-4 text-white" />
+                    <span className="text-xl font-bold text-white">{overallScore.grade}</span>
                   </div>
                 </div>
               </div>
             </div>
             
-            {/* Progress Bars */}
-            <div className="mt-8">
-              {isAnalyzing ? (
-                <div className="flex items-center justify-center space-x-4 p-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/20">
-                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-white/30 border-t-white"></div>
-                  <div className="text-white/90">
-                    <span className="font-medium">AI Analysis in Progress...</span>
-                    <p className="text-sm text-white/70 mt-1">
-                      🧠 Processing conversations with advanced AI intelligence
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-4 gap-4">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="h-2 rounded-full bg-gradient-to-r from-white/20 to-white/10 overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-white/60 to-white/40 rounded-full transition-all duration-1000 ease-out"
-                        style={{ width: `${Math.min(100, (overallScore.score / 100) * 100)}%` }}
-                      ></div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Loading State */}
+            {isAnalyzing && (
+              <div className="mt-6 flex items-center gap-3 p-3 bg-white/10 backdrop-blur-sm rounded-[var(--radius-lg)] border border-white/20">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white" />
+                <span className="text-white/90 text-sm">Processing analysis...</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Key Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+        {/* Action Buttons */}
+        <div className="flex gap-3 mb-8">
+          <button
+            onClick={generateInsights}
+            disabled={isGeneratingInsights || loading}
+            className="flex items-center gap-2 bg-[var(--surface-elevated)] text-[var(--text-secondary)] px-4 py-2.5 rounded-[var(--radius-lg)] border border-[var(--border-default)] hover:border-[var(--brand-secondary)]/50 hover:text-[var(--text-primary)] transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isGeneratingInsights ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+            <span>{isGeneratingInsights ? 'Generating...' : 'Generate Insights'}</span>
+          </button>
+          
+          <button
+            onClick={runFullAnalysis}
+            disabled={isAnalyzing}
+            className="flex items-center gap-2 bg-[var(--surface-elevated)] text-[var(--text-secondary)] px-4 py-2.5 rounded-[var(--radius-lg)] border border-[var(--border-default)] hover:border-emerald-500/50 hover:text-[var(--text-primary)] transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isAnalyzing ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+            ) : (
+              <Brain className="h-4 w-4" />
+            )}
+            <span>{isAnalyzing ? 'Analyzing...' : 'Run Analysis'}</span>
+          </button>
+        </div>
+
+        {/* Key Metrics Grid - 4 column */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <MetricCard
-            icon={<Star className="h-6 w-6" />}
+            icon={<Star className="h-5 w-5" />}
             title="Quality Score"
-            value={`${averages.avgQualityScore}/100`}
-            color="emerald"
-            subtitle="Average conversation quality"
+            value={`${averages.avgQualityScore}%`}
+            variant="success"
+            subtitle="Conversation quality"
           />
           <MetricCard
-            icon={<Heart className="h-6 w-6" />}
+            icon={<Heart className="h-5 w-5" />}
             title="Empathy Score"
-            value={`${averages.avgEmpathyScore}/100`}
-            color="fuchsia"
-            subtitle="Customer connection level"
+            value={`${averages.avgEmpathyScore}%`}
+            variant="primary"
+            subtitle="Customer connection"
           />
           <MetricCard
-            icon={<AlertTriangle className="h-6 w-6" />}
+            icon={<AlertTriangle className="h-5 w-5" />}
             title="Escalation Risk"
             value={`${averages.avgEscalationRisk}%`}
-            color="amber"
-            subtitle="Risk of escalation"
+            variant="warning"
+            subtitle="Risk level"
           />
           <MetricCard
-            icon={<CheckCircle className="h-6 w-6" />}
+            icon={<CheckCircle className="h-5 w-5" />}
             title="Script Adherence"
             value={`${averages.avgScriptAdherence}%`}
-            color="blue"
-            subtitle="Following protocols"
-          />
-          <MetricCard
-            icon={<Users className="h-6 w-6" />}
-            title="Active Agents"
-            value={data?.total_agents || 0}
-            color="cyan"
-            subtitle="Total human agents"
+            variant="info"
+            subtitle="Protocol compliance"
           />
         </div>
 

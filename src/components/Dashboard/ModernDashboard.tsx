@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Header from './Header';
-import MetricCard from './MetricCard';
+import MetricCard from '@/components/ui/metric-card';
 import SentimentChart from './Charts/SentimentChart';
 import TopicsChart from './Charts/TopicsChart';
 import InsightsSection from './Insights/InsightsSection';
@@ -10,17 +10,17 @@ import KnowledgeBaseGenerator from './Insights/KnowledgeBaseGenerator';
 import ParallelProcessingPanel from '../ParallelProcessing/ParallelProcessingPanel';
 import {
   Users2,
-  Clock,
   Target,
   AlertTriangle,
   ThumbsUp,
   Brain,
   MessageSquare,
-  TrendingUp,
-  Activity,
   Zap,
   UserPlus,
-  ArrowRightLeft
+  ArrowRightLeft,
+  BarChart3,
+  Sparkles,
+  Database
 } from 'lucide-react';
 
 interface PlatformOverallScore {
@@ -79,6 +79,19 @@ interface DashboardData {
   availableChannels?: string[];
 }
 
+interface AnalysisJob {
+  id: string;
+  version_name: string;
+  analysis_type: 'dashboard' | 'humanAgent';
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+  total_conversations: number;
+  processed_conversations: number;
+  error_count: number;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+}
+
 interface ModernDashboardProps {
   data: DashboardData;
   loading?: boolean;
@@ -89,6 +102,8 @@ interface ModernDashboardProps {
   selectedChannel?: string;
   availableChannels?: string[];
   onChannelChange?: (channel: string) => void;
+  selectedVersionId?: string | null;
+  onVersionSelect?: (version: AnalysisJob | null) => void;
 }
 
 const ModernDashboard = ({ 
@@ -100,7 +115,9 @@ const ModernDashboard = ({
   onZainjoAnalysis,
   selectedChannel = 'all',
   availableChannels = ['app', 'web'],
-  onChannelChange
+  onChannelChange,
+  selectedVersionId,
+  onVersionSelect
 }: ModernDashboardProps) => {
   const metrics = data.metrics;
   const platformScore = metrics?.platformScore;
@@ -165,18 +182,18 @@ const ModernDashboard = ({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white">
+      <div className="min-h-screen bg-[var(--surface-base)] text-[var(--text-primary)]">
         <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse">
-            <div className="h-48 bg-gray-800 rounded-2xl mb-8"></div>
+            <div className="h-36 bg-[var(--surface-elevated)] rounded-[var(--radius-xl)] mb-8" />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-32 bg-gray-800 rounded-xl"></div>
+                <div key={i} className="h-32 bg-[var(--surface-elevated)] rounded-[var(--radius-xl)]" />
               ))}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-32 bg-gray-800 rounded-xl"></div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="h-64 bg-[var(--surface-elevated)] rounded-[var(--radius-xl)]" />
               ))}
             </div>
           </div>
@@ -190,7 +207,7 @@ const ModernDashboard = ({
   
   if (!hasData) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white">
+      <div className="min-h-screen bg-[var(--surface-base)] text-[var(--text-primary)]">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <Header
@@ -199,88 +216,128 @@ const ModernDashboard = ({
             totalConversations={0}
             analysisType="basic"
             fastMode={false}
-            optimizationLevel="standard"
             loading={loading || isProcessing}
             onFullAnalysis={handleStartAnalysis}
             onConversationAnalysis={onConversationAnalysis}
           />
 
           {/* Welcome State */}
-          <div className="text-center py-20">
-            <div className="text-8xl mb-8">🚀</div>
-            <h2 className="text-4xl font-bold text-white mb-6">Welcome to AI Analytics</h2>
-            <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-              Get intelligent insights from your chatbot conversations using advanced AI analysis. 
-              Choose an analysis type to get started.
-            </p>
+          <div className="py-12">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-[var(--radius-xl)] bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/20 mb-6">
+                <BarChart3 className="h-8 w-8 text-[var(--brand-primary)]" />
+              </div>
+              <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-3">
+                Conversation Analytics
+              </h2>
+              <p className="text-lg text-[var(--text-secondary)] max-w-xl mx-auto">
+                Get actionable insights from your chatbot conversations with AI-powered analysis.
+              </p>
+            </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
-              {/* Intelligent Analysis Card */}
-              <div className="bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 rounded-2xl p-8 hover:border-emerald-500/40 transition-all duration-300">
-                <div className="text-4xl mb-4">⚡</div>
-                <h3 className="text-2xl font-bold text-white mb-4">Intelligent Analysis</h3>
-                <p className="text-gray-300 mb-6">
-                  AI-powered analysis with smart optimization. Fast processing with high accuracy.
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12">
+              {/* Dashboard Analysis Card */}
+              <div className="bg-[var(--surface-card)] border border-[var(--border-default)] rounded-[var(--radius-xl)] p-6 hover:border-[var(--brand-primary)]/40 transition-all duration-200 group">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2.5 rounded-[var(--radius-lg)] bg-emerald-500/10 border border-emerald-500/20">
+                    <Sparkles className="h-5 w-5 text-emerald-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-[var(--text-primary)]">Dashboard Analysis</h3>
+                </div>
+                <p className="text-[var(--text-secondary)] text-sm mb-5">
+                  AI-powered insights with sentiment analysis, topic detection, and quality scoring.
                 </p>
-                <ul className="text-left text-gray-400 space-y-2 mb-6">
-                  <li>• Smart conversation selection</li>
-                  <li>• Sentiment & intent analysis</li>
-                  <li>• AI recommendations</li>
-                  <li>• Performance insights</li>
+                <ul className="text-sm text-[var(--text-muted)] space-y-2 mb-6">
+                  <li className="flex items-center gap-2">
+                    <span className="w-1 h-1 bg-emerald-400 rounded-full" />
+                    Sentiment & intent analysis
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1 h-1 bg-emerald-400 rounded-full" />
+                    AI recommendations
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1 h-1 bg-emerald-400 rounded-full" />
+                    Performance metrics
+                  </li>
                 </ul>
                 <button
                   onClick={handleStartAnalysis}
-                  className="w-full bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300"
+                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-[var(--radius-lg)] font-medium transition-colors duration-200"
                 >
-                  Start Analysis
+                  View Dashboard
                 </button>
               </div>
 
-              {/* Individual Conversations Card */}
-              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-2xl p-8 hover:border-purple-500/40 transition-all duration-300">
-                <div className="text-4xl mb-4">💬</div>
-                <h3 className="text-2xl font-bold text-white mb-4">Analyze Conversations</h3>
-                <p className="text-gray-300 mb-6">
-                  Select and analyze specific conversations for detailed insights and quality assessment.
+              {/* Conversations Card */}
+              <div className="bg-[var(--surface-card)] border border-[var(--border-default)] rounded-[var(--radius-xl)] p-6 hover:border-[var(--brand-secondary)]/40 transition-all duration-200 group">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2.5 rounded-[var(--radius-lg)] bg-[var(--brand-secondary)]/10 border border-[var(--brand-secondary)]/20">
+                    <MessageSquare className="h-5 w-5 text-indigo-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-[var(--text-primary)]">Conversations</h3>
+                </div>
+                <p className="text-[var(--text-secondary)] text-sm mb-5">
+                  Browse and analyze individual conversations with detailed quality metrics.
                 </p>
-                <ul className="text-left text-gray-400 space-y-2 mb-6">
-                  <li>• Browse conversation list</li>
-                  <li>• Individual analysis</li>
-                  <li>• Detailed metrics</li>
-                  <li>• Quality scoring</li>
+                <ul className="text-sm text-[var(--text-muted)] space-y-2 mb-6">
+                  <li className="flex items-center gap-2">
+                    <span className="w-1 h-1 bg-indigo-400 rounded-full" />
+                    Browse full conversation list
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1 h-1 bg-indigo-400 rounded-full" />
+                    Individual analysis
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1 h-1 bg-indigo-400 rounded-full" />
+                    Quality scoring
+                  </li>
                 </ul>
                 <button
                   onClick={onConversationAnalysis}
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300"
+                  className="w-full bg-[var(--brand-secondary)] hover:bg-indigo-600 text-white px-4 py-2.5 rounded-[var(--radius-lg)] font-medium transition-colors duration-200"
                 >
                   Browse Conversations
                 </button>
               </div>
 
-              {/* Zainjo Analysis Card */}
-              <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 rounded-2xl p-8 hover:border-orange-500/40 transition-all duration-300">
-                <div className="text-4xl mb-4">🔥</div>
-                <h3 className="text-2xl font-bold text-white mb-4">Zainjo Analysis</h3>
-                <p className="text-gray-300 mb-6">
-                  Analyze Zainjo conversation data with advanced AI processing and insights generation.
+              {/* Dataset Analysis Card */}
+              <div className="bg-[var(--surface-card)] border border-[var(--border-default)] rounded-[var(--radius-xl)] p-6 hover:border-amber-500/40 transition-all duration-200 group">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2.5 rounded-[var(--radius-lg)] bg-amber-500/10 border border-amber-500/20">
+                    <Database className="h-5 w-5 text-amber-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-[var(--text-primary)]">Dataset Analysis</h3>
+                </div>
+                <p className="text-[var(--text-secondary)] text-sm mb-5">
+                  Process large conversation datasets with batch analysis capabilities.
                 </p>
-                <ul className="text-left text-gray-400 space-y-2 mb-6">
-                  <li>• 18,668 conversations</li>
-                  <li>• Intent classification</li>
-                  <li>• Quality assessment</li>
-                  <li>• Performance metrics</li>
+                <ul className="text-sm text-[var(--text-muted)] space-y-2 mb-6">
+                  <li className="flex items-center gap-2">
+                    <span className="w-1 h-1 bg-amber-400 rounded-full" />
+                    Bulk processing
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1 h-1 bg-amber-400 rounded-full" />
+                    Intent classification
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1 h-1 bg-amber-400 rounded-full" />
+                    Export capabilities
+                  </li>
                 </ul>
                 <button
                   onClick={onZainjoAnalysis}
-                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300"
+                  className="w-full bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-[var(--radius-lg)] font-medium transition-colors duration-200"
                 >
-                  Analyze Zainjo Data
+                  Analyze Dataset
                 </button>
               </div>
             </div>
 
             {/* Parallel Processing Panel */}
-            <div className="max-w-6xl mx-auto">
+            <div className="max-w-5xl mx-auto">
               <ParallelProcessingPanel onProcessingComplete={onParallelProcessingComplete} />
             </div>
           </div>
@@ -290,7 +347,7 @@ const ModernDashboard = ({
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-[var(--surface-base)] text-[var(--text-primary)]">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <Header
@@ -299,149 +356,142 @@ const ModernDashboard = ({
           totalConversations={totalConversations}
           analysisType={data.analysisType}
           fastMode={data.fastMode}
-          optimizationLevel={data.optimizationLevel}
           loading={loading || isProcessing}
           onFullAnalysis={handleStartAnalysis}
           onConversationAnalysis={onConversationAnalysis}
+          selectedVersionId={selectedVersionId}
+          onVersionSelect={onVersionSelect}
         />
 
         {/* Channel Filter */}
-        <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-400 font-medium">Filter by Channel:</span>
-            <div className="flex space-x-2">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <span className="text-[var(--text-muted)] font-medium text-sm">Channel:</span>
+            <div className="flex gap-2">
               <button
                 onClick={() => onChannelChange?.('all')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                className={`px-3 py-1.5 rounded-[var(--radius-md)] text-sm font-medium transition-colors duration-200 ${
                   selectedChannel === 'all'
-                    ? 'bg-cyan-500 text-white'
-                    : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                    ? 'bg-[var(--brand-primary)] text-white'
+                    : 'bg-[var(--surface-elevated)] text-[var(--text-secondary)] hover:bg-[var(--surface-card)]'
                 }`}
               >
-                All Channels
+                All
               </button>
               {availableChannels.map((channel) => (
                 <button
                   key={channel}
                   onClick={() => onChannelChange?.(channel)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 capitalize ${
+                  className={`px-3 py-1.5 rounded-[var(--radius-md)] text-sm font-medium transition-colors duration-200 capitalize ${
                     selectedChannel === channel
-                      ? channel === 'app' 
-                        ? 'bg-purple-500 text-white' 
-                        : 'bg-blue-500 text-white'
-                      : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                      ? 'bg-[var(--brand-primary)] text-white'
+                      : 'bg-[var(--surface-elevated)] text-[var(--text-secondary)] hover:bg-[var(--surface-card)]'
                   }`}
                 >
-                  {channel === 'app' ? '📱 App' : channel === 'web' ? '🌐 Web' : channel}
+                  {channel}
                 </button>
               ))}
             </div>
           </div>
           {selectedChannel !== 'all' && (
-            <div className="text-sm text-gray-400">
-              Showing <span className="text-cyan-400 font-semibold capitalize">{selectedChannel}</span> conversations only
+            <div className="text-sm text-[var(--text-muted)]">
+              Filtered: <span className="text-[var(--brand-primary)] font-medium capitalize">{selectedChannel}</span>
             </div>
           )}
         </div>
 
-        {/* Primary Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Primary Metrics - 4-column grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <MetricCard
-            icon={<Users2 className="h-6 w-6" />}
+            icon={<Users2 className="h-5 w-5" />}
             title="Total Conversations"
             value={totalConversations.toLocaleString()}
-            color="cyan"
+            variant="info"
             subtitle={data.fastMode ? 'Smart analysis' : 'Full dataset'}
           />
           <MetricCard
-            icon={<MessageSquare className="h-6 w-6" />}
-            title="Avg Conversation Length"
+            icon={<MessageSquare className="h-5 w-5" />}
+            title="Avg Length"
             value={`${avgLength.toFixed(1)} msgs`}
-            color="emerald"
-            subtitle="Messages per conversation"
+            variant="primary"
+            subtitle="Per conversation"
           />
           <MetricCard
-            icon={<Target className="h-6 w-6" />}
+            icon={<Target className="h-5 w-5" />}
             title="Quality Score"
             value={`${qualityScore.toFixed(0)}%`}
-            color="fuchsia"
+            variant="success"
             subtitle="Overall performance"
+          />
+          <MetricCard
+            icon={<ThumbsUp className="h-5 w-5" />}
+            title="Resolution Rate"
+            value={`${resolutionRate.toFixed(0)}%`}
+            variant="success"
+            subtitle="Successfully resolved"
           />
         </div>
 
-        {/* Secondary Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Secondary Metrics - 4-column grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <MetricCard
-            icon={<AlertTriangle className="h-6 w-6" />}
+            icon={<AlertTriangle className="h-5 w-5" />}
             title="Escalation Rate"
-                            value={`${escalationRate.toFixed(1)}%`}
-            color="rose"
+            value={`${escalationRate.toFixed(1)}%`}
+            variant="warning"
             subtitle="Conversations escalated"
           />
           <MetricCard
-            icon={<ThumbsUp className="h-6 w-6" />}
-            title="Resolution Rate"
-                            value={`${resolutionRate.toFixed(0)}%`}
-            color="emerald"
-            subtitle="Successfully resolved"
-          />
-          <MetricCard
-            icon={<Brain className="h-6 w-6" />}
+            icon={<Brain className="h-5 w-5" />}
             title="Knowledge Gaps"
             value={knowledgeGaps}
-            color="violet"
+            variant="neutral"
             subtitle="Areas for improvement"
           />
+          {transferRate > 0 && (
+            <>
+              <MetricCard
+                icon={<ArrowRightLeft className="h-5 w-5" />}
+                title="Transfer Rate"
+                value={`${transferRate.toFixed(1)}%`}
+                variant="warning"
+                subtitle="To human agents"
+              />
+              <MetricCard
+                icon={<UserPlus className="h-5 w-5" />}
+                title="Top Transfer Reason"
+                value={topTransferReasons.length > 0 ? topTransferReasons[0].reason.substring(0, 20) + '...' : 'N/A'}
+                variant="warning"
+                subtitle={topTransferReasons.length > 0 ? `${topTransferReasons[0].count} occurrences` : 'None'}
+              />
+            </>
+          )}
         </div>
-
-        {/* Transfer Rate Metric - show if we have transfer data */}
-        {transferRate > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <MetricCard
-              icon={<ArrowRightLeft className="h-6 w-6" />}
-              title="Transfer to Agent Rate"
-              value={`${transferRate.toFixed(1)}%`}
-              color="amber"
-              subtitle="Conversations transferred to human agents"
-            />
-            <MetricCard
-              icon={<UserPlus className="h-6 w-6" />}
-              title="Top Transfer Reason"
-              value={topTransferReasons.length > 0 ? topTransferReasons[0].reason.substring(0, 30) + '...' : 'N/A'}
-              color="orange"
-              subtitle={topTransferReasons.length > 0 ? `${topTransferReasons[0].count} occurrences` : 'No transfers recorded'}
-            />
-          </div>
-        )}
 
         {/* Transfer Reasons Section */}
         {topTransferReasons.length > 0 && (
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 mb-8 border border-amber-500/20">
-            <div className="flex items-center mb-6">
-              <div className="p-2 bg-amber-500/10 rounded-lg border border-amber-500/20 mr-3">
-                <ArrowRightLeft className="text-amber-400 h-6 w-6" />
+          <div className="bg-[var(--surface-card)] rounded-[var(--radius-xl)] p-6 mb-8 border border-[var(--border-default)]">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-2 bg-amber-500/10 rounded-[var(--radius-md)] border border-amber-500/20">
+                <ArrowRightLeft className="text-amber-400 h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-white">Reasons for Transfer to Human Agent</h3>
-                <p className="text-gray-400 text-sm">Why users were transferred from bot to human agents</p>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)]">Transfer Reasons</h3>
+                <p className="text-[var(--text-muted)] text-sm">Why users were transferred to human agents</p>
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {topTransferReasons.slice(0, 6).map((item, index) => (
                 <div 
                   key={index} 
-                  className="p-4 bg-gradient-to-r from-amber-500/5 to-orange-500/5 rounded-lg border border-amber-500/10 hover:border-amber-500/30 transition-all duration-300"
+                  className="p-3 bg-[var(--surface-elevated)] rounded-[var(--radius-lg)] border border-[var(--border-muted)] hover:border-amber-500/30 transition-colors duration-200"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="text-gray-300 text-sm leading-relaxed">{item.reason}</p>
-                    </div>
-                    <div className="ml-3 flex-shrink-0">
-                      <span className="px-2 py-1 bg-amber-500/20 text-amber-400 rounded-full text-xs font-semibold">
-                        {item.count}x
-                      </span>
-                    </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-[var(--text-secondary)] text-sm leading-relaxed flex-1">{item.reason}</p>
+                    <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded-full text-xs font-medium">
+                      {item.count}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -450,9 +500,9 @@ const ModernDashboard = ({
         )}
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <SentimentChart data={metrics?.sentimentDistribution} />
-                          <TopicsChart data={metrics?.topTopics} />
+          <TopicsChart data={metrics?.topTopics} />
         </div>
 
         {/* AI Insights */}
@@ -461,47 +511,24 @@ const ModernDashboard = ({
         {/* Knowledge Base Generator */}
         <KnowledgeBaseGenerator />
 
-        {/* Performance Stats */}
-        {data.fastMode && (
-          <div className="mt-8 p-6 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-xl border border-green-500/20">
-            <div className="flex items-center mb-4">
-              <Zap className="h-6 w-6 text-green-400 mr-3" />
-              <h3 className="text-xl font-semibold text-white">Smart Analysis Performance</h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-green-500/10 rounded-lg border border-green-500/20">
-                <p className="text-2xl font-bold text-green-400 mb-1">Fast</p>
-                <p className="text-sm text-gray-400">Processing Speed</p>
-              </div>
-              <div className="text-center p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                <p className="text-2xl font-bold text-blue-400 mb-1">High</p>
-                <p className="text-sm text-gray-400">Accuracy Level</p>
-              </div>
-              <div className="text-center p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                <p className="text-2xl font-bold text-purple-400 mb-1">Smart</p>
-                <p className="text-sm text-gray-400">Selection Method</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="flex gap-4 flex-wrap">
+        {/* Action Buttons */}
+        <div className="mt-8 flex gap-3 flex-wrap">
           <button
             onClick={() => refreshInsights()}
             disabled={loading || isProcessing}
-            className="px-6 py-3 bg-violet-500/20 text-violet-300 rounded-xl border border-violet-500/30 hover:bg-violet-500/30 hover:border-violet-500/50 transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            className="px-4 py-2.5 bg-[var(--surface-elevated)] text-[var(--text-secondary)] rounded-[var(--radius-lg)] border border-[var(--border-default)] hover:border-[var(--brand-primary)]/50 hover:text-[var(--text-primary)] transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            <Brain className="h-5 w-5" />
+            <Brain className="h-4 w-4" />
             <span>{isProcessing ? 'Refreshing...' : 'Refresh Insights'}</span>
           </button>
           
           <button
             onClick={analyzeZainjoData}
             disabled={loading || isProcessing}
-            className="px-6 py-3 bg-emerald-500/20 text-emerald-300 rounded-xl border border-emerald-500/30 hover:bg-emerald-500/30 hover:border-emerald-500/50 transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            className="px-4 py-2.5 bg-[var(--surface-elevated)] text-[var(--text-secondary)] rounded-[var(--radius-lg)] border border-[var(--border-default)] hover:border-emerald-500/50 hover:text-[var(--text-primary)] transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            <Brain className="h-5 w-5" />
-            <span>{isProcessing ? 'Processing...' : 'Analyze Zainjo Data'}</span>
+            <Database className="h-4 w-4" />
+            <span>{isProcessing ? 'Processing...' : 'Analyze Dataset'}</span>
           </button>
         </div>
       </div>

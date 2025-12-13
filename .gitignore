@@ -56,5 +56,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-"data/NewData/" 
-"data/NewData/" 
+
+# Large data files
+data/NewData/ 

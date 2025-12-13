@@ -90,6 +90,19 @@ interface DashboardData {
   sampleSize?: number;
 }
 
+interface AnalysisJob {
+  id: string;
+  version_name: string;
+  analysis_type: 'dashboard' | 'humanAgent';
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+  total_conversations: number;
+  processed_conversations: number;
+  error_count: number;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+}
+
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData>({});
   const [loading, setLoading] = useState(false);
@@ -100,6 +113,7 @@ export default function Dashboard() {
   const [demoMode, setDemoMode] = useState(true);
   const [selectedChannel, setSelectedChannel] = useState<string>('all');
   const [availableChannels, setAvailableChannels] = useState<string[]>(['app', 'web']);
+  const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
 
   const STATIC_AI_INSIGHTS = {
     insights: "Analysis of 5,000 conversations reveals that while the chatbot achieves a high rate of neutral sentiment (94%) and maintains an average quality score of 61.57%, significant performance gaps persist. The most frequent issues include a lack of escalation options for unresolved issues (8% of all recommendations), insufficient follow-up prompts to gather user-specific details (noted in over 3% of cases), and a consistent absence of detailed troubleshooting steps for account activation and balance problems (knowledge gaps cited in 7% and 6% of cases, respectively). Trends indicate that although initial greetings and menu presentations are effective (noted in 2% of conversations), the bot often fails to engage in detailed troubleshooting or problem-solving, resulting in repetitive user attempts (up to 28 cases) and frequent requests for human escalation (over 24 cases). The bot's reliance on static menu navigation without dynamic, personalized follow-up leads to unresolved issues, user frustration, and repeated escalation requests. Additionally, there are persistent knowledge gaps regarding step-by-step guidance for account activation, points redemption, and product usage, as well as a lack of clear escalation pathways and estimated resolution times.",
@@ -304,6 +318,13 @@ export default function Dashboard() {
     loadData('full', true, 0, 'aggressive', channel);
   };
 
+  // Handle version selection - filter data by analysis version
+  const handleVersionSelect = (version: AnalysisJob | null) => {
+    setSelectedVersionId(version?.id || null);
+    // Reload data - the API will filter by version if provided
+    loadData('full', true, 0, 'aggressive');
+  };
+
   // If using modern design, render the new dashboard
   if (useModernDesign) {
     return (
@@ -324,6 +345,8 @@ export default function Dashboard() {
             selectedChannel={selectedChannel}
             availableChannels={availableChannels}
             onChannelChange={handleChannelChange}
+            selectedVersionId={selectedVersionId}
+            onVersionSelect={handleVersionSelect}
           />
         </div>
       </div>
