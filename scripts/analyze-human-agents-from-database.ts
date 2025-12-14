@@ -57,6 +57,9 @@ interface HumanAgentAnalysisResult {
   sentimentScore: number;
   qualityScore: number;
   empathyScore: number;
+  scriptAdherence: number;
+  initialSentiment: 'positive' | 'negative' | 'neutral';
+  finalSentiment: 'positive' | 'negative' | 'neutral';
   rootCauses: string[];
   knowledgeGaps: string[];
   coachingOpportunities: string[];
@@ -108,6 +111,9 @@ const humanAgentAnalysisSchema = {
     sentimentScore: { type: "number" as const },
     qualityScore: { type: "number" as const },
     empathyScore: { type: "number" as const },
+    scriptAdherence: { type: "number" as const },
+    initialSentiment: { type: "string" as const, enum: ["positive", "negative", "neutral"] },
+    finalSentiment: { type: "string" as const, enum: ["positive", "negative", "neutral"] },
     rootCauses: { type: "array" as const, items: { type: "string" as const } },
     knowledgeGaps: { type: "array" as const, items: { type: "string" as const } },
     coachingOpportunities: { type: "array" as const, items: { type: "string" as const } },
@@ -120,7 +126,7 @@ const humanAgentAnalysisSchema = {
     wasTransferredToAgent: { type: "boolean" as const },
     transferReason: { type: "string" as const }
   },
-  required: ["sentiment", "sentimentScore", "qualityScore", "empathyScore", "rootCauses", "knowledgeGaps", "coachingOpportunities", "escalationRisk", "churnSignals", "customerEffortScore", "resolutionStatus", "summary", "recommendations", "wasTransferredToAgent", "transferReason"] as const,
+  required: ["sentiment", "sentimentScore", "qualityScore", "empathyScore", "scriptAdherence", "initialSentiment", "finalSentiment", "rootCauses", "knowledgeGaps", "coachingOpportunities", "escalationRisk", "churnSignals", "customerEffortScore", "resolutionStatus", "summary", "recommendations", "wasTransferredToAgent", "transferReason"] as const,
   additionalProperties: false as const
 };
 
@@ -139,6 +145,9 @@ ANALYSIS GUIDELINES:
 - sentimentScore: -1 (very negative) to 1 (very positive)
 - qualityScore: 0-100 - how well the agent handled the conversation
 - empathyScore: 0-100 - how empathetic was the agent
+- scriptAdherence: 0-100 - how well the agent follows protocols and uses professional language
+- initialSentiment: Customer's sentiment at the START of conversation (positive/neutral/negative) - based on first 1-2 customer messages
+- finalSentiment: Customer's sentiment at the END of conversation (positive/neutral/negative) - based on last 1-2 customer messages
 - rootCauses: Root causes of customer issues (max 3, in English)
 - knowledgeGaps: Topics the agent struggled with (max 3, in English)
 - coachingOpportunities: Areas for agent improvement (max 3, in English)
@@ -148,14 +157,24 @@ ANALYSIS GUIDELINES:
 - resolutionStatus: resolved/partial/unresolved
 - summary: Brief summary (max 100 words, in English)
 - recommendations: Actionable recommendations (max 3, in English)
-- wasTransferredToAgent: true if the conversation was transferred from a bot to a human agent
-- transferReason: Why the user was transferred to a human agent (e.g., "Bot couldn't resolve billing dispute", "User requested human assistance")
+- wasTransferredToAgent: true if you see bot messages before agent takes over (look for transfer phrases)
+- transferReason: The main topic/inquiry of this conversation - what is the customer asking about or trying to resolve? (e.g., "Billing dispute about overcharge", "Account access issues", "Product return request", "Subscription cancellation")
+
+SENTIMENT PROGRESSION:
+- initialSentiment: Look at the customer's first messages. Are they frustrated, neutral, or positive when starting?
+- finalSentiment: Look at the customer's last messages. Did the agent improve, maintain, or worsen their mood?
+This is critical for measuring "Conversations Improved" metric.
 
 TRANSFER DETECTION:
-Look for these phrases that indicate transfer from bot to human agent:
+Look for these phrases that indicate the conversation started with a bot before human agent:
 - English: "Please wait until I connect you to an Agent"
 - Arabic: "الرجاء الانتظار حتى أقوم بتحويلك الى موظف" or "يرجى الانتظار حتى أقوم بتوصيلك بأحد الموظفين"
-If these phrases appear, set wasTransferredToAgent to true and analyze why the transfer was needed.
+If these phrases appear, set wasTransferredToAgent to true.
+
+IMPORTANT FOR transferReason:
+This field should capture the MAIN TOPIC or INQUIRY of the conversation - what the customer needed help with.
+Examples: "Snapchat Plus subscription issue", "Payment not processed", "Account locked", "Refund request for game purchase"
+Do NOT leave this empty - always identify what the customer is contacting about.
 
 Handle Arabic and English conversations. Output all text fields in English for dashboard consistency.`;
 
@@ -190,6 +209,9 @@ Handle Arabic and English conversations. Output all text fields in English for d
       sentimentScore: typeof parsed.sentimentScore === 'number' ? Math.max(-1, Math.min(1, parsed.sentimentScore)) : 0,
       qualityScore: typeof parsed.qualityScore === 'number' ? Math.max(0, Math.min(100, parsed.qualityScore)) : 0,
       empathyScore: typeof parsed.empathyScore === 'number' ? Math.max(0, Math.min(100, parsed.empathyScore)) : 0,
+      scriptAdherence: typeof parsed.scriptAdherence === 'number' ? Math.max(0, Math.min(100, parsed.scriptAdherence)) : 75,
+      initialSentiment: ['positive', 'negative', 'neutral'].includes(parsed.initialSentiment) ? parsed.initialSentiment : 'neutral',
+      finalSentiment: ['positive', 'negative', 'neutral'].includes(parsed.finalSentiment) ? parsed.finalSentiment : 'neutral',
       rootCauses: Array.isArray(parsed.rootCauses) ? parsed.rootCauses.slice(0, 3) : [],
       knowledgeGaps: Array.isArray(parsed.knowledgeGaps) ? parsed.knowledgeGaps.slice(0, 3) : [],
       coachingOpportunities: Array.isArray(parsed.coachingOpportunities) ? parsed.coachingOpportunities.slice(0, 3) : [],
@@ -214,6 +236,9 @@ function getDefaultAnalysis(): HumanAgentAnalysisResult {
     sentimentScore: 0,
     qualityScore: 0,
     empathyScore: 0,
+    scriptAdherence: 75,
+    initialSentiment: 'neutral',
+    finalSentiment: 'neutral',
     rootCauses: [],
     knowledgeGaps: [],
     coachingOpportunities: [],
@@ -235,8 +260,11 @@ async function saveAnalysisToDatabase(conversationId: string, analysis: HumanAge
     .update({
       quality_score: analysis.qualityScore,
       empathy_score: analysis.empathyScore,
+      script_adherence: analysis.scriptAdherence,
       sentiment: analysis.sentiment,
       sentiment_score: analysis.sentimentScore,
+      initial_sentiment: analysis.initialSentiment,
+      final_sentiment: analysis.finalSentiment,
       knowledge_gaps: analysis.knowledgeGaps,
       root_causes: analysis.rootCauses,
       coaching_opportunities: analysis.coachingOpportunities,

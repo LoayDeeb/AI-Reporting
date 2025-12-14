@@ -17,15 +17,10 @@ export async function GET(request: NextRequest) {
 
     // Map to the exact structure expected by the frontend
     const transformedAnalytics = analytics.map(a => {
-      // Parse sentiment change to get initial sentiment if possible
-      // Format is usually "initial → final"
-      let initialSentiment = a.sentiment; // Default to current/final
-      if (a.sentimentChange && a.sentimentChange.includes('→')) {
-        const parts = a.sentimentChange.split('→');
-        if (parts.length >= 1) {
-          initialSentiment = parts[0].trim().toLowerCase();
-        }
-      }
+      // Use the actual initial_sentiment and final_sentiment from database
+      // These are set by the AI analysis script directly
+      const initialSentiment = a.initial_sentiment || a.sentiment || 'neutral';
+      const finalSentiment = a.final_sentiment || a.sentiment || 'neutral';
 
       return {
         conversation_id: a.senderID, // Map senderID to conversation_id for human agents
@@ -37,7 +32,7 @@ export async function GET(request: NextRequest) {
         escalation_risk: a.escalationRisk || 0,
         script_adherence: a.scriptAdherence || 0,
         customer_effort_score: a.customerEffortScore || 0,
-        final_sentiment: a.sentiment,
+        final_sentiment: finalSentiment,
         initial_sentiment: initialSentiment,
         sentiment_change: a.sentimentChange || 'maintained',
         knowledge_gaps: a.knowledgeGaps,

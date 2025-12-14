@@ -127,9 +127,14 @@ const defaultHumanAgentMetrics: MetricConfig[] = [
     description: 'How the agent affected customer mood (Positive Impact, Neutral Impact, Negative Impact, Mixed Impact)',
   },
   {
-    key: 'sentiment_analysis',
-    name: 'Sentiment Analysis',
-    description: 'Track customer sentiment progression: initial sentiment, final sentiment, and whether it improved/maintained/worsened',
+    key: 'initial_sentiment',
+    name: 'Initial Sentiment',
+    description: 'Customer sentiment at the start of the conversation (positive, neutral, negative)',
+  },
+  {
+    key: 'final_sentiment',
+    name: 'Final Sentiment',
+    description: 'Customer sentiment at the end of the conversation (positive, neutral, negative)',
   },
   {
     key: 'knowledge_gaps',

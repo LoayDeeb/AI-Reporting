@@ -73,6 +73,8 @@ export interface ConversationAnalytics {
   customerEffortScore?: number;
   resolutionStatus?: string;
   topics?: string[];
+  initial_sentiment?: string; // Customer sentiment at start of conversation
+  final_sentiment?: string;   // Customer sentiment at end of conversation
   
   // Timestamps
   timestamp?: string;

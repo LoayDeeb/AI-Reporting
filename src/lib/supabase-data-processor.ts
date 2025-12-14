@@ -96,6 +96,8 @@ export class SupabaseDataProcessor {
       rootCauses: row.root_causes || [],
       churnSignals: row.churn_signals || [],
       sentimentChange: row.sentiment_change,
+      initial_sentiment: row.initial_sentiment,
+      final_sentiment: row.final_sentiment,
       
       // Timestamps
       timestamp: row.started_at,

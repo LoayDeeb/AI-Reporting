@@ -232,6 +232,8 @@ async function startBackgroundAnalysis(
         sentimentScore: { type: "number" as const },
         qualityScore: { type: "number" as const },
         empathyScore: { type: "number" as const },
+        initialSentiment: { type: "string" as const, enum: ["positive", "negative", "neutral"] },
+        finalSentiment: { type: "string" as const, enum: ["positive", "negative", "neutral"] },
         rootCauses: { type: "array" as const, items: { type: "string" as const } },
         knowledgeGaps: { type: "array" as const, items: { type: "string" as const } },
         coachingOpportunities: { type: "array" as const, items: { type: "string" as const } },
@@ -242,7 +244,7 @@ async function startBackgroundAnalysis(
         summary: { type: "string" as const },
         recommendations: { type: "array" as const, items: { type: "string" as const } }
       },
-      required: ["sentiment", "sentimentScore", "qualityScore", "empathyScore", "rootCauses", "knowledgeGaps", "coachingOpportunities", "escalationRisk", "churnSignals", "customerEffortScore", "resolutionStatus", "summary", "recommendations"] as const,
+      required: ["sentiment", "sentimentScore", "qualityScore", "empathyScore", "initialSentiment", "finalSentiment", "rootCauses", "knowledgeGaps", "coachingOpportunities", "escalationRisk", "churnSignals", "customerEffortScore", "resolutionStatus", "summary", "recommendations"] as const,
       additionalProperties: false as const
     };
 
@@ -326,6 +328,8 @@ async function startBackgroundAnalysis(
                 empathy_score: parsed.empathyScore || 0,
                 sentiment: parsed.sentiment || 'neutral',
                 sentiment_score: parsed.sentimentScore || 0,
+                initial_sentiment: parsed.initialSentiment || 'neutral',
+                final_sentiment: parsed.finalSentiment || 'neutral',
                 knowledge_gaps: parsed.knowledgeGaps || [],
                 root_causes: parsed.rootCauses || [],
                 coaching_opportunities: parsed.coachingOpportunities || [],

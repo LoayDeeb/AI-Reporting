@@ -20,7 +20,7 @@ import {
   User,
   CheckCircle,
   Sparkles,
-  ArrowRightLeft
+  X
 } from 'lucide-react';
 import MetricCard from '@/components/ui/metric-card';
 import Modal from '@/components/ui/modal';
@@ -255,14 +255,18 @@ const HumanAgentDashboard: React.FC = () => {
     if (!data?.analytics) return { 
       transferRate: 0, 
       transferredCount: 0, 
-      topTransferReasons: [] as Array<{ reason: string; count: number }> 
+      topTransferReasons: [] as Array<{ reason: string; count: number }>,
+      totalConversations: 0
     };
     
+    // Count how many have was_transferred_to_agent=true (for stats)
     const transferred = data.analytics.filter(conv => conv.was_transferred_to_agent);
     const transferredCount = transferred.length;
     const transferRate = Math.round((transferredCount / data.analytics.length) * 100);
     
-    const reasonCounts = transferred.reduce((acc, conv) => {
+    // Get topics from ALL conversations (not just transferred)
+    // Since transfer_reason now captures the main topic/inquiry of each conversation
+    const reasonCounts = data.analytics.reduce((acc, conv) => {
       if (conv.transfer_reason && conv.transfer_reason.trim()) {
         acc[conv.transfer_reason] = (acc[conv.transfer_reason] || 0) + 1;
       }
@@ -271,10 +275,15 @@ const HumanAgentDashboard: React.FC = () => {
     
     const topTransferReasons = Object.entries(reasonCounts)
       .sort(([,a], [,b]) => b - a)
-      .slice(0, 6)
+      .slice(0, 10) // Show top 10 instead of 6
       .map(([reason, count]) => ({ reason, count }));
     
-    return { transferRate, transferredCount, topTransferReasons };
+    return { 
+      transferRate, 
+      transferredCount, 
+      topTransferReasons,
+      totalConversations: data.analytics.length
+    };
   };
 
   const getTopKnowledgeGaps = () => {
@@ -792,41 +801,36 @@ const HumanAgentDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Transfer to Human Agent Section */}
-        {transferMetrics.transferredCount > 0 && (
+        {/* Conversation Topics Section */}
+        {transferMetrics.topTransferReasons.length > 0 && (
           <div className="bg-[var(--surface-card)] rounded-[var(--radius-xl)] p-6 mb-8 border border-[var(--border-default)]">
             <div className="flex items-center gap-3 mb-5">
-              <div className="p-2 bg-amber-500/10 rounded-[var(--radius-md)] border border-amber-500/20">
-                <ArrowRightLeft className="text-amber-400 h-5 w-5" />
+              <div className="p-2 bg-blue-500/10 rounded-[var(--radius-md)] border border-blue-500/20">
+                <MessageSquare className="text-blue-400 h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-[var(--text-primary)]">Transfer to Human Agent</h3>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)]">Top Conversation Topics</h3>
                 <p className="text-[var(--text-muted)] text-sm">
-                  {transferMetrics.transferredCount} conversations ({transferMetrics.transferRate}%) were transferred from bot to human agent
+                  Most common inquiries across {data?.total_conversations || 0} human agent conversations
                 </p>
               </div>
             </div>
             
-            {transferMetrics.topTransferReasons.length > 0 && (
-              <>
-                <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-3">Top Transfer Reasons</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {transferMetrics.topTransferReasons.map((item, index) => (
-                    <div 
-                      key={index} 
-                      className="p-3 bg-[var(--surface-elevated)] rounded-[var(--radius-lg)] border border-[var(--border-muted)] hover:border-amber-500/30 transition-colors duration-200"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <p className="text-[var(--text-secondary)] text-sm leading-relaxed flex-1">{item.reason}</p>
-                        <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded-full text-xs font-medium">
-                          {item.count}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {transferMetrics.topTransferReasons.map((item, index) => (
+                <div 
+                  key={index} 
+                  className="p-3 bg-[var(--surface-elevated)] rounded-[var(--radius-lg)] border border-[var(--border-muted)] hover:border-blue-500/30 transition-colors duration-200"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-[var(--text-secondary)] text-sm leading-relaxed flex-1">{item.reason}</p>
+                    <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium">
+                      {item.count}
+                    </span>
+                  </div>
                 </div>
-              </>
-            )}
+              ))}
+            </div>
           </div>
         )}
 
