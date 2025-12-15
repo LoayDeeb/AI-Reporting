@@ -801,38 +801,44 @@ const HumanAgentDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Conversation Topics Section */}
-        {transferMetrics.topTransferReasons.length > 0 && (
-          <div className="bg-[var(--surface-card)] rounded-[var(--radius-xl)] p-6 mb-8 border border-[var(--border-default)]">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="p-2 bg-blue-500/10 rounded-[var(--radius-md)] border border-blue-500/20">
-                <MessageSquare className="text-blue-400 h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-[var(--text-primary)]">Top Conversation Topics</h3>
-                <p className="text-[var(--text-muted)] text-sm">
-                  Most common inquiries across {data?.total_conversations || 0} human agent conversations
-                </p>
-              </div>
+        {/* Top Inquiry Reasons Section - Static */}
+        <div className="bg-[var(--surface-card)] rounded-[var(--radius-xl)] p-6 mb-8 border border-[var(--border-default)]">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="p-2 bg-blue-500/10 rounded-[var(--radius-md)] border border-blue-500/20">
+              <MessageSquare className="text-blue-400 h-5 w-5" />
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {transferMetrics.topTransferReasons.map((item, index) => (
-                <div 
-                  key={index} 
-                  className="p-3 bg-[var(--surface-elevated)] rounded-[var(--radius-lg)] border border-[var(--border-muted)] hover:border-blue-500/30 transition-colors duration-200"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-[var(--text-secondary)] text-sm leading-relaxed flex-1">{item.reason}</p>
-                    <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium">
-                      {item.count}
-                    </span>
-                  </div>
-                </div>
-              ))}
+            <div>
+              <h3 className="text-lg font-semibold text-[var(--text-primary)]">Top Inquiry Reasons</h3>
+              <p className="text-[var(--text-muted)] text-sm">
+                Main reasons customers contact human agents
+              </p>
             </div>
           </div>
-        )}
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 bg-[var(--surface-elevated)] rounded-[var(--radius-lg)] border border-[var(--border-muted)] hover:border-blue-500/30 transition-colors duration-200">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                <h4 className="text-[var(--text-primary)] font-medium">OTP Issues in Account Activation</h4>
+              </div>
+              <p className="text-[var(--text-muted)] text-sm">Customers experiencing problems with one-time passwords during account setup</p>
+            </div>
+            <div className="p-4 bg-[var(--surface-elevated)] rounded-[var(--radius-lg)] border border-[var(--border-muted)] hover:border-emerald-500/30 transition-colors duration-200">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+                <h4 className="text-[var(--text-primary)] font-medium">Wallet/Payment Issues</h4>
+              </div>
+              <p className="text-[var(--text-muted)] text-sm">Issues related to wallet balance, payments, or transaction problems</p>
+            </div>
+            <div className="p-4 bg-[var(--surface-elevated)] rounded-[var(--radius-lg)] border border-[var(--border-muted)] hover:border-amber-500/30 transition-colors duration-200">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-2 h-2 bg-amber-400 rounded-full"></div>
+                <h4 className="text-[var(--text-primary)] font-medium">General Questions</h4>
+              </div>
+              <p className="text-[var(--text-muted)] text-sm">General inquiries about services, features, or how to use the platform</p>
+            </div>
+          </div>
+        </div>
 
         {/* AI Insights Section */}
         {data?.aiInsights && (
