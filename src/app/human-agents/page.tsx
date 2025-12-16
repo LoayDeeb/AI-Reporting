@@ -690,7 +690,7 @@ const HumanAgentDashboard: React.FC = () => {
                 <div className="text-4xl font-bold text-emerald-400 mb-2">
                   {sentimentShiftMetrics.improvementRate}%
                 </div>
-                <p className="text-gray-300 text-sm mb-3">Conversations Improved</p>
+                <p className="text-gray-300 text-sm mb-3">Calls Improved</p>
                 <div className="w-full bg-gray-700 rounded-full h-2">
                   <div 
                     className="bg-gradient-to-r from-emerald-400 to-emerald-500 h-2 rounded-full transition-all duration-1000"
@@ -743,7 +743,7 @@ const HumanAgentDashboard: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-white font-medium hover:text-blue-300 transition-colors">{agent.name}</p>
-                      <p className="text-gray-400 text-sm">{agent.conversations} conversations</p>
+                      <p className="text-gray-400 text-sm">{agent.conversations} calls</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -1056,7 +1056,7 @@ const HumanAgentDashboard: React.FC = () => {
               <div className="bg-gray-700/30 rounded-xl p-6">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center">
                   <MessageSquare className="h-5 w-5 mr-2 text-blue-400" />
-                  Recent Conversations ({selectedAgent.totalConversations} total)
+                  Recent Calls ({selectedAgent.totalConversations} total)
                 </h3>
                 <div className="space-y-3">
                   {selectedAgent.recentConversations.map((conv: any, index: number) => (
