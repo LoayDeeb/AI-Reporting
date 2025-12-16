@@ -23,7 +23,10 @@ import {
   Loader,
   Database,
   BookOpen,
-  Activity
+  Activity,
+  Play,
+  Pause,
+  X
 } from 'lucide-react';
 
 interface ConversationDetailsProps {
@@ -37,6 +40,8 @@ const HumanAgentConversationDetails = ({ params }: ConversationDetailsProps) => 
   const [conversationData, setConversationData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [conversationId, setConversationId] = useState<string>('');
+  const [showRecordingModal, setShowRecordingModal] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   
   useEffect(() => {
     const fetchConversationData = async () => {
@@ -194,13 +199,13 @@ const HumanAgentConversationDetails = ({ params }: ConversationDetailsProps) => 
             className="inline-flex items-center text-gray-400 hover:text-white mb-6 transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Conversations
+            Back to Calls
           </Link>
           
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 p-8 text-center">
             <MessageSquare className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-white mb-2">Conversation Not Found</h2>
-            <p className="text-gray-400">This conversation could not be found in the database.</p>
+            <h2 className="text-xl font-bold text-white mb-2">Call Not Found</h2>
+            <p className="text-gray-400">This call could not be found in the database.</p>
           </div>
         </div>
       </div>
@@ -217,7 +222,7 @@ const HumanAgentConversationDetails = ({ params }: ConversationDetailsProps) => 
           className="inline-flex items-center text-gray-400 hover:text-white mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Conversations
+          Back to Calls
         </Link>
 
         {/* Header Card */}
@@ -246,6 +251,15 @@ const HumanAgentConversationDetails = ({ params }: ConversationDetailsProps) => 
               </div>
 
               <div className="flex items-center space-x-4">
+                {/* Play Recording Button */}
+                <button
+                  onClick={() => setShowRecordingModal(true)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl border border-white/20 transition-all duration-200"
+                >
+                  <Play className="h-5 w-5 text-white" />
+                  <span className="text-white font-medium">Play Recording</span>
+                </button>
+                
                 <span className={`flex items-center space-x-2 px-4 py-2 rounded-full border ${getSentimentColor(conversation.final_sentiment)}`}>
                   {getSentimentIcon(conversation.final_sentiment)}
                   <span className="capitalize font-medium">{conversation.final_sentiment}</span>
@@ -540,6 +554,84 @@ const HumanAgentConversationDetails = ({ params }: ConversationDetailsProps) => 
             </div>
           </div>
         </div>
+
+        {/* Recording Modal */}
+        {showRecordingModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+            <div className="bg-gray-800 rounded-2xl border border-gray-700 p-6 w-full max-w-lg mx-4 shadow-2xl">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white flex items-center">
+                  <Play className="h-5 w-5 mr-2 text-blue-400" />
+                  Call Recording
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowRecordingModal(false);
+                    setIsPlaying(false);
+                  }}
+                  className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <X className="h-5 w-5 text-gray-400" />
+                </button>
+              </div>
+
+              {/* Recording Info */}
+              <div className="bg-gray-900/50 rounded-xl p-4 mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-gray-400 text-sm">Agent</span>
+                  <span className="text-white font-medium">{conversation.agent_name}</span>
+                </div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-gray-400 text-sm">Duration</span>
+                  <span className="text-white font-medium">{formatResolutionTime(conversation.resolution_time)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400 text-sm">Call ID</span>
+                  <span className="text-gray-300 text-sm font-mono">{conversation.id.slice(0, 12)}...</span>
+                </div>
+              </div>
+
+              {/* Audio Player Placeholder */}
+              <div className="bg-gray-900/50 rounded-xl p-6 mb-6">
+                <div className="flex items-center justify-center mb-4">
+                  <button
+                    onClick={() => setIsPlaying(!isPlaying)}
+                    className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-200 ${
+                      isPlaying 
+                        ? 'bg-rose-500 hover:bg-rose-600' 
+                        : 'bg-blue-500 hover:bg-blue-600'
+                    }`}
+                  >
+                    {isPlaying ? (
+                      <Pause className="h-8 w-8 text-white" />
+                    ) : (
+                      <Play className="h-8 w-8 text-white ml-1" />
+                    )}
+                  </button>
+                </div>
+                
+                {/* Progress Bar Placeholder */}
+                <div className="space-y-2">
+                  <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full bg-blue-500 rounded-full transition-all duration-300 ${isPlaying ? 'animate-pulse' : ''}`}
+                      style={{ width: isPlaying ? '35%' : '0%' }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-400">
+                    <span>{isPlaying ? '1:23' : '0:00'}</span>
+                    <span>{formatResolutionTime(conversation.resolution_time)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Note about placeholder */}
+              <p className="text-gray-500 text-sm text-center">
+                Recording playback is a placeholder. Connect your audio storage to enable playback.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

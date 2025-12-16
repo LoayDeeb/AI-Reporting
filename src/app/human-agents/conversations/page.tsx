@@ -251,7 +251,7 @@ const HumanAgentConversations = () => {
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 p-8">
             <div className="flex items-center justify-center">
               <LoaderIcon className="animate-spin text-blue-400 mr-3" size={24} />
-              <span className="text-gray-300">Loading human agent conversations from database...</span>
+              <span className="text-gray-300">Loading human agent calls from database...</span>
             </div>
           </div>
         </div>
@@ -279,10 +279,10 @@ const HumanAgentConversations = () => {
                 </div>
                 <div>
                   <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/90">
-                    Human Agent Conversations
+                    Human Agent Calls
                   </h1>
                   <p className="text-white/70 mt-2 text-lg">
-                    Detailed conversation analysis and performance insights
+                    Detailed call analysis and performance insights
                   </p>
                 </div>
               </div>
@@ -336,8 +336,8 @@ const HumanAgentConversations = () => {
                 <div className="flex items-center space-x-3">
                   <AlertTriangle className="h-5 w-5 text-amber-400" />
                   <div>
-                    <p className="text-amber-200 font-medium">No conversations found in database</p>
-                    <p className="text-amber-200/70 text-sm">Run a Human Agent analysis from the Dashboard first to populate conversation data.</p>
+                    <p className="text-amber-200 font-medium">No calls found in database</p>
+                    <p className="text-amber-200/70 text-sm">Run a Human Agent analysis from the Dashboard first to populate call data.</p>
                   </div>
                 </div>
               </div>
@@ -506,7 +506,7 @@ const HumanAgentConversations = () => {
             <div className="p-6 border-b border-gray-700">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold text-white">
-                  Conversations ({filteredConversations.length})
+                  Calls ({filteredConversations.length})
                 </h3>
                 {totalPages > 1 && (
                   <div className="flex items-center space-x-4">
@@ -538,10 +538,10 @@ const HumanAgentConversations = () => {
             {paginatedConversations.length === 0 ? (
               <div className="p-8 text-center">
                 <MessageSquareIcon className="mx-auto text-gray-400 mb-4" size={48} />
-                <h3 className="text-lg font-medium text-gray-300 mb-2">No Conversations Found</h3>
+                <h3 className="text-lg font-medium text-gray-300 mb-2">No Calls Found</h3>
                 <p className="text-gray-400">
                   {conversations.length === 0 
-                    ? "Run a Human Agent analysis from the Dashboard first to populate conversation data."
+                    ? "Run a Human Agent analysis from the Dashboard first to populate call data."
                     : "Try adjusting your search criteria or filters."
                   }
                 </p>
@@ -646,7 +646,7 @@ const HumanAgentConversations = () => {
             {totalPages > 1 && (
               <div className="p-4 border-t border-gray-700 flex items-center justify-between">
                 <div className="text-sm text-gray-400">
-                  Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredConversations.length)} of {filteredConversations.length} conversations
+                  Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredConversations.length)} of {filteredConversations.length} calls
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
