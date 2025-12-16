@@ -509,7 +509,7 @@ const HumanAgentDashboard: React.FC = () => {
                     </span>
                     <span className="px-2.5 py-1 bg-white/15 backdrop-blur-sm rounded-full text-white/90 text-xs font-medium border border-white/20 flex items-center gap-1.5">
                       <MessageSquare className="h-3.5 w-3.5" />
-                      {data?.total_conversations || 0} conversations
+                      {data?.total_conversations || 0} calls
                     </span>
                     {data?.fromCache && (
                       <span className="px-2.5 py-1 bg-emerald-500/20 rounded-full text-emerald-300 text-xs font-medium border border-emerald-500/30">
@@ -528,7 +528,7 @@ const HumanAgentDashboard: React.FC = () => {
                     className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2.5 rounded-[var(--radius-lg)] font-medium transition-colors duration-200 border border-white/20"
                   >
                     <MessageSquare className="h-4 w-4" />
-                    <span>Conversations</span>
+                    <span>Calls</span>
                   </button>
                 </div>
 
