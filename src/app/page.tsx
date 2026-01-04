@@ -138,7 +138,7 @@ export default function Dashboard() {
     ]
   };
 
-  const loadData = async (type: 'basic' | 'sample' | 'full', fastMode = false, limit = 0, optimization: 'standard' | 'aggressive' | 'extreme' = 'aggressive', channel?: string) => {
+  const loadData = async (type: 'basic' | 'sample' | 'full', fastMode = false, limit = 0, optimization: 'standard' | 'aggressive' | 'extreme' = 'aggressive', channel?: string, versionId?: string | null) => {
     setLoading(true);
     try {
       let url = `/api/analyze?action=${type}`;
@@ -149,6 +149,11 @@ export default function Dashboard() {
       const channelToUse = channel || selectedChannel;
       if (channelToUse && channelToUse !== 'all') {
         url += `&channel=${channelToUse}`;
+      }
+      // Add version filter
+      const versionToUse = versionId !== undefined ? versionId : selectedVersionId;
+      if (versionToUse) {
+        url += `&version=${versionToUse}`;
       }
       
       const response = await fetch(url);
@@ -320,9 +325,10 @@ export default function Dashboard() {
 
   // Handle version selection - filter data by analysis version
   const handleVersionSelect = (version: AnalysisJob | null) => {
-    setSelectedVersionId(version?.id || null);
-    // Reload data - the API will filter by version if provided
-    loadData('full', true, 0, 'aggressive');
+    const versionId = version?.id || null;
+    setSelectedVersionId(versionId);
+    // Reload data with the selected version filter
+    loadData('full', true, 0, 'aggressive', selectedChannel, versionId);
   };
 
   // If using modern design, render the new dashboard

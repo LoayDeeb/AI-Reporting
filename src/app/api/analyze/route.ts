@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const action = searchParams.get('action');
     const channel = searchParams.get('channel') || undefined; // 'app', 'web', 'all', or undefined
+    const version = searchParams.get('version') || undefined; // analysis_version UUID filter
     
     // Use Supabase processor for fetching analytics
     const dbProcessor = new SupabaseDataProcessor();
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
         // Fallback to basic view but using DB data (simulating full analysis result)
       case 'basic':
       default:
-        console.log(`🔍 Loading conversation analysis from Supabase (channel: ${channel || 'all'})...`);
+        console.log(`🔍 Loading conversation analysis from Supabase (channel: ${channel || 'all'}, version: ${version || 'all'})...`);
         
         // Fetch AI analytics from Supabase
         // Use sampleSize if provided, otherwise default to 10000
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
           // The SupabaseDataProcessor.getAnalytics method already aggregates insights from the fetched data
         }
 
-        const { analytics, aiInsights, availableChannels } = await dbProcessor.getAnalytics('ai', limit, channel);
+        const { analytics, aiInsights, availableChannels } = await dbProcessor.getAnalytics('ai', limit, channel, version);
         
         if (analytics.length === 0) {
            // Fallback for demo mode or empty state
@@ -67,8 +68,11 @@ export async function GET(request: NextRequest) {
           analyzedConversations: analytics.length,
           analysisType: 'full_ai',
           fromCache: true,
-          message: 'Data loaded successfully from Supabase',
+          message: version 
+            ? `Data loaded for analysis version ${version}` 
+            : 'Data loaded successfully from Supabase',
           currentChannel: channel || 'all',
+          currentVersion: version || null,
           availableChannels: availableChannels || ['app', 'web']
         });
         

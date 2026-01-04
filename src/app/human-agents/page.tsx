@@ -25,6 +25,20 @@ import {
 import MetricCard from '@/components/ui/metric-card';
 import Modal from '@/components/ui/modal';
 import ProgressBar from '@/components/ui/progress-bar';
+import VersionSelector from '@/components/Dashboard/VersionSelector';
+
+interface AnalysisJob {
+  id: string;
+  version_name: string;
+  analysis_type: 'dashboard' | 'humanAgent';
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+  total_conversations: number;
+  processed_conversations: number;
+  error_count: number;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+}
 
 interface HumanAgentConversation {
   conversation_id: string;
@@ -82,6 +96,7 @@ const HumanAgentDashboard: React.FC = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<any | null>(null);
   const [showAgentModal, setShowAgentModal] = useState(false);
+  const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
 
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
 
@@ -108,12 +123,19 @@ const HumanAgentDashboard: React.FC = () => {
     loadHumanAgentData();
   }, []);
 
-  const loadHumanAgentData = async () => {
+  const loadHumanAgentData = async (versionId?: string | null) => {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/analyze-human-agents?action=analyze');
+      let url = '/api/analyze-human-agents?action=analyze';
+      // Add version filter
+      const versionToUse = versionId !== undefined ? versionId : selectedVersionId;
+      if (versionToUse) {
+        url += `&version=${versionToUse}`;
+      }
+      
+      const response = await fetch(url);
       const result = await response.json();
       
       if (!response.ok) {
@@ -127,6 +149,14 @@ const HumanAgentDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle version selection - filter data by analysis version
+  const handleVersionSelect = (version: AnalysisJob | null) => {
+    const versionId = version?.id || null;
+    setSelectedVersionId(versionId);
+    // Reload data with the selected version filter
+    loadHumanAgentData(versionId);
   };
 
   const runFullAnalysis = async () => {
@@ -516,6 +546,11 @@ const HumanAgentDashboard: React.FC = () => {
                         Cached
                       </span>
                     )}
+                    <VersionSelector
+                      analysisType="humanAgent"
+                      selectedVersionId={selectedVersionId}
+                      onVersionSelect={handleVersionSelect}
+                    />
                   </div>
                 </div>
               </div>

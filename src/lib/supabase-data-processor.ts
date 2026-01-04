@@ -9,9 +9,10 @@ export class SupabaseDataProcessor {
    * @param sourceType - 'ai' or 'human'
    * @param limit - max number of records to fetch
    * @param channel - optional channel filter ('app', 'web', or undefined for all)
+   * @param analysisVersion - optional analysis version UUID filter to show only conversations from a specific analysis run
    */
-  async getAnalytics(sourceType: 'ai' | 'human' = 'ai', limit = 5000, channel?: string): Promise<{ analytics: ConversationAnalytics[], aiInsights: any, availableChannels: string[] }> {
-    console.log(`🔍 Fetching ${sourceType} analytics from Supabase (limit: ${limit}, channel: ${channel || 'all'})...`);
+  async getAnalytics(sourceType: 'ai' | 'human' = 'ai', limit = 5000, channel?: string, analysisVersion?: string): Promise<{ analytics: ConversationAnalytics[], aiInsights: any, availableChannels: string[] }> {
+    console.log(`🔍 Fetching ${sourceType} analytics from Supabase (limit: ${limit}, channel: ${channel || 'all'}, version: ${analysisVersion || 'all'})...`);
 
     let allData: any[] = [];
     let offset = 0;
@@ -31,6 +32,11 @@ export class SupabaseDataProcessor {
       // Add channel filter if specified
       if (channel && channel !== 'all') {
         query = query.eq('channel', channel);
+      }
+      
+      // Add analysis version filter if specified
+      if (analysisVersion) {
+        query = query.eq('analysis_version', analysisVersion);
       }
       
       const { data, error } = await query
